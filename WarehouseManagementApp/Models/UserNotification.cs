@@ -2,14 +2,13 @@
 
 namespace WarehouseManagementApp.Models
 {
-    public class UserRole
+    public class UserNotification
     {
-        public int RoleId { get; set; }
-        [ForeignKey("RoleId")]
-        public Role Role { get; set; }
         public int UserId { get; set; }
+        public int NotificationId { get; set; }
         [ForeignKey("UserId")]
         public User User { get; set; }
-
+        [ForeignKey("NotificationId")]
+        public Notification Notification { get; set; }
     }
 }

@@ -2,16 +2,15 @@
 
 namespace WarehouseManagementApp.Models
 {
-    public class Role
+    public class ProductCategory
     {
         [Key]
         public int Id { get; set; }
-        [Required, StringLength(100)]
+        [Required, StringLength(255)]
         public string Name { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        public DateTime? DeletedAt {  get; set; }
-        public ICollection<UserRole>? UserRoles { get; set; }
-        public ICollection<RolePermission> RolePermissions { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public ICollection<Product> Products { get; set; }
     }
 }
