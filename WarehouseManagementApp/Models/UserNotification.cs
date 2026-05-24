@@ -7,8 +7,8 @@ namespace WarehouseManagementApp.Models
         public int UserId { get; set; }
         public int NotificationId { get; set; }
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public User? User { get; set; }
         [ForeignKey("NotificationId")]
-        public Notification Notification { get; set; }
+        public Notification? Notification { get; set; }
     }
 }

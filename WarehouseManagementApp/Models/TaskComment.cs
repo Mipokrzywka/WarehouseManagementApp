@@ -9,12 +9,12 @@ namespace WarehouseManagementApp.Models
         public int Id { get; set; }
         public int TaskId {  get; set; }
         [ForeignKey("TaskId")]
-        public WorkTask Task { get; set; }
+        public WorkTask? Task { get; set; }
         [Required]
-        public string content { get; set; }
+        public string Content { get; set; } = string.Empty;
         public int CreatedById { get; set; }
         [ForeignKey("CreatedById")]
-        public User CreatedBy { get; set; }
+        public User? CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set;}
         public DateTime? DeletedAt { get; set;}

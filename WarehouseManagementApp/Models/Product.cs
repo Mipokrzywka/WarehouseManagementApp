@@ -9,11 +9,11 @@ namespace WarehouseManagementApp.Models
         public int Id { get; set; }
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
-        public ProductCategory Category { get; set; }
+        public ProductCategory? Category { get; set; }
         [Required]
-        public string QrCode { get; set; }
+        public string QrCode { get; set; } = string.Empty;
         [Required]
-        public string Name {  get; set; }
+        public string Name {  get; set; } = string.Empty;
         [Range(0, int.MaxValue, ErrorMessage = "Quantity cannot be negative")]
         public int Quantity { get; set; }
         [Column(TypeName = "decimal(10, 2)"), Range(0.01, (double)decimal.MaxValue, ErrorMessage = "Cost has to be higher than 0")]
@@ -22,7 +22,7 @@ namespace WarehouseManagementApp.Models
         public DateTime? ForecastDepletionDate {  get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
-        public ICollection<ProductChange> ProductChanges { get; set; }
-        public ICollection<OrderProduct> OrderProducts { get; set; }
+        public ICollection<ProductChange> ProductChanges { get; set; } = new List<ProductChange>();
+        public ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
     }
 }

@@ -6,10 +6,10 @@ namespace WarehouseManagementApp.Models
     {
         public int RoleId { get; set; }
         [ForeignKey("RoleId")]
-        public Role Role { get; set; }
+        public Role? Role { get; set; }
         public int UserId { get; set; }
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public User? User { get; set; }
 
     }
 }

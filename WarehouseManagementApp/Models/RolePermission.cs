@@ -7,8 +7,8 @@ namespace WarehouseManagementApp.Models
         public int RoleId { get; set; }
         public int PermissionId { get; set; }
         [ForeignKey("RoleId")]
-        public Role Role { get; set; }
+        public Role? Role { get; set; }
         [ForeignKey("PermissionId")]
-        public Permission Permission { get; set; }
+        public Permission? Permission { get; set; }
     }
 }

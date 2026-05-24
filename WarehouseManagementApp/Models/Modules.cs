@@ -7,7 +7,7 @@ namespace WarehouseManagementApp.Models
         [Key]
         public int Id { get; set; }
         [Required, StringLength(100)]
-        public string Name { get; set; }
-        public ICollection<ActivityLog> ActivityLogs { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
     }
 }

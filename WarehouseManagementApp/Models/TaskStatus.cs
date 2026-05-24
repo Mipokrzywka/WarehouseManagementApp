@@ -8,6 +8,6 @@ namespace WarehouseManagementApp.Models
         public int Id { get; set; }
         [Required]
         public string Name { get; set; } = string.Empty;
-        public ICollection<WorkTask> Tasks { get; set; }
+        public ICollection<WorkTask> Tasks { get; set; } = new List<WorkTask>();
     }
 }
