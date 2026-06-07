@@ -57,7 +57,8 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<Product>()
                 .HasIndex(p => new { p.Name, p.CategoryId })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[Deleted_at] IS NULL");
 
             modelBuilder.Entity<ProductCategory>()
                 .HasIndex(pc => pc.Name)
