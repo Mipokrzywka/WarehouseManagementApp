@@ -91,12 +91,6 @@ public class OrdersController : ControllerBase
         var existingOrder = _orderRepository.GetOrderWithDetails(id);
         if (existingOrder == null)
             return NotFound($"Order with id {id} does not exist");       
-        bool isTransitionAllowed = (existingOrder.StatusId) switch
-        {
-            (int)OrderStatusEnum.New => true,
-            (int)OrderStatusEnum.Processing => true,
-            _ => false
-        };
         if(existingOrder.StatusId != (int)OrderStatusEnum.New && existingOrder.StatusId != (int)OrderStatusEnum.Processing)
             return BadRequest($"Orders with status other than New or Processing cannot be modified");
         var oldData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
@@ -124,7 +118,7 @@ public class OrdersController : ControllerBase
         }
 
         existingOrder.CostAmt = totalOrderCost;
-
+        var newData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
         if (!_orderRepository.Update(existingOrder)) 
             return BadRequest("Failed to update order");
 
@@ -136,7 +130,7 @@ public class OrdersController : ControllerBase
             UserId = 1, // Add user that deleted the order
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
-            NewData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto())
+            NewData = newData
         };
         _activityLogRepository.Create(log);
         return NoContent();
@@ -183,7 +177,9 @@ public class OrdersController : ControllerBase
             }
         }
         existingOrder.StatusId = statusId;
-        _orderRepository.Update(existingOrder);
+        var newData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
+        if(!_orderRepository.Update(existingOrder))
+            return BadRequest("Failed to update status");
 
         ActivityLog log = new ActivityLog()
         {
@@ -193,9 +189,9 @@ public class OrdersController : ControllerBase
             UserId = 1, //TBD
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
-            NewData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto()),
+            NewData = newData,
         };
-        _activityLogRepository.Update(log);
+        _activityLogRepository.Create(log);
         return NoContent();
     }
 
@@ -250,7 +246,7 @@ public class OrdersController : ControllerBase
         return CreatedAtAction(nameof(GetOrderById), new { id = createdOrder.Id }, orderReadDto);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public IActionResult DeleteOrder(int id)
     {
         var order = _orderRepository.GetOrderWithDetails(id);
@@ -259,9 +255,9 @@ public class OrdersController : ControllerBase
         
         if (order.StatusId != (int)OrderStatusEnum.New)
             return BadRequest("Only orders with status new can be deleted");
-        var oldProductData = order.ToReadDto();
+        var oldProductData = System.Text.Json.JsonSerializer.Serialize(order.ToReadDto());
 
-        if (!_orderRepository.SoftDelete(id))
+        if (!_orderRepository.SoftDelete(order))
             return BadRequest("Failed to delete order");
 
         ActivityLog log = new ActivityLog()
@@ -271,7 +267,7 @@ public class OrdersController : ControllerBase
             Action = "Delete",
             UserId = 1, // Add user that deleted the order
             CreatedAt = DateTime.UtcNow,
-            OldData = System.Text.Json.JsonSerializer.Serialize(oldProductData),
+            OldData = oldProductData,
             NewData = ""
         }; 
         _activityLogRepository.Create(log);

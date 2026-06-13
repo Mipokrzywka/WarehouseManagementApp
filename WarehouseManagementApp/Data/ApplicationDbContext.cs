@@ -39,8 +39,6 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<UserNotification>()
                 .HasKey(un => new { un.UserId, un.NotificationId });
 
-            modelBuilder.Entity<OrderProduct>()
-                .HasKey(op => new { op.OrderId, op.ProductId});
 
             modelBuilder.Entity<RolePermission>()
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId});
@@ -50,6 +48,9 @@ namespace WarehouseManagementApp.Data
                 .HasIndex(p => p.QrCode)
                 .IsUnique()
                 .HasFilter("[DeletedAt] IS NULL");
+            modelBuilder.Entity<OrderProduct>()
+                .HasIndex(op => new { op.OrderId, op.ProductId })
+                .IsUnique();
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
@@ -103,6 +104,11 @@ namespace WarehouseManagementApp.Data
                 .HasPrecision(10, 2);
 
             // Configure relationships for Order entity
+            modelBuilder.Entity<Order>()
+                 .HasMany(o => o.OrderProducts)
+                  .WithOne(op => op.Order)
+                 .HasForeignKey(op => op.OrderId)
+                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CreatedBy)
                 .WithMany()

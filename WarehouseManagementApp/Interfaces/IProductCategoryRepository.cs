@@ -6,6 +6,7 @@ namespace WarehouseManagementApp.Interfaces
     {
         ProductCategory? GetByName(string name);
         bool NameExists(string name, int categoryId = 0);
-        bool SoftDelete(int id);
+        bool SoftDelete(ProductCategory category);
+        bool HasProducts(int id);
     }
 }

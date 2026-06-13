@@ -20,11 +20,12 @@ namespace WarehouseManagementApp.Repository
             return _dbSet.Any(pc => pc.Name.ToLower() == name.ToLower() && categoryId != pc.Id && pc.DeletedAt == null);
         }
 
-        public bool SoftDelete(int id)
+        public bool HasProducts(int id)
         {
-            var category = GetById(id);
-            if (category == null)
-                return false;
+            return _context.Products.Any(p => p.CategoryId == id);
+        }
+        public bool SoftDelete(ProductCategory category)
+        {
             category.DeletedAt = DateTime.UtcNow;
             _dbSet.Update(category);
             return Save();

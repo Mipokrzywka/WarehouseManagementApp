@@ -54,10 +54,10 @@ public class ProductCategoriesController : ControllerBase
             return BadRequest("Invalid product category data");
         var existingProductCategory = _productCategoryRepository.GetById(productCategoryId);
         if (existingProductCategory == null)
-            return NotFound($"Product category with id {productCategoryId} does not exist");
-        var originalData = existingProductCategory.ToReadDto();
+            return NotFound($"Product category with id {productCategoryId} does not exist");        
         if (_productCategoryRepository.NameExists(productCategoryDto.Name, existingProductCategory.Id))
             return BadRequest($"Product category with name {productCategoryDto.Name} already exists");
+        var originalData = System.Text.Json.JsonSerializer.Serialize(existingProductCategory.ToReadDto());
         ProductCategoryMapper.UpdateFromDto(existingProductCategory, productCategoryDto);
         if (!_productCategoryRepository.Update(existingProductCategory))
             return StatusCode(500, "Failed to update product category");
@@ -68,7 +68,7 @@ public class ProductCategoriesController : ControllerBase
             Action = "Update",
             UserId = 1, // Replace with actual user ID from authentication context
             CreatedAt = DateTime.UtcNow,
-            OldData = System.Text.Json.JsonSerializer.Serialize(originalData),
+            OldData = originalData,
             NewData = System.Text.Json.JsonSerializer.Serialize(existingProductCategory.ToReadDto())
         };
         _activityLogRepository.LogActivity(log);
@@ -103,14 +103,20 @@ public class ProductCategoriesController : ControllerBase
 
     [HttpDelete("{productCategoryId:int}")]
     [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     public IActionResult DeleteProductCategory(int productCategoryId)
     {
         var existingProductCategory = _productCategoryRepository.GetById(productCategoryId);
         if (existingProductCategory == null)
             return NotFound($"Product category with id {productCategoryId} does not exist");
-        var oldData = existingProductCategory.ToReadDto();
-        if (!_productCategoryRepository.SoftDelete(productCategoryId))
+        if (_productCategoryRepository.HasProducts(productCategoryId))
+        {
+            return BadRequest("Cannot delete a category that contains products. Reassign the products first.");
+        }
+        var oldData = System.Text.Json.JsonSerializer.Serialize(existingProductCategory.ToReadDto());
+        
+        if (!_productCategoryRepository.SoftDelete(existingProductCategory))
             return StatusCode(500, "Failed to delete product category");
         ActivityLog log = new ActivityLog()
         {
@@ -119,7 +125,8 @@ public class ProductCategoriesController : ControllerBase
             Action = "Delete",
             UserId = 1, // Replace with actual user ID from authentication context
             CreatedAt = DateTime.UtcNow,
-            OldData = System.Text.Json.JsonSerializer.Serialize(oldData)
+            OldData = oldData,
+            NewData = ""
         };
         _activityLogRepository.LogActivity(log);
         return NoContent();

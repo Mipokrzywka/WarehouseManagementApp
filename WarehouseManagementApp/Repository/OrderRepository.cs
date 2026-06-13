@@ -10,16 +10,6 @@ namespace WarehouseManagementApp.Repository
         public OrderRepository(ApplicationDbContext context) : base(context)
         {
         }
-        public bool ChangeStatus(int id, int status, int? reviewerId = null)
-        {
-            var order = GetById(id);
-            if (order == null)
-                return false;
-            order.StatusId = status;
-            if (reviewerId.HasValue)
-                order.ReviewerId = reviewerId.Value;
-            return Update(order);
-        }
 
         public ICollection<Order> GetAllOrdersWithDetails(string getBy = "", int id = 0)
         {
@@ -65,11 +55,8 @@ namespace WarehouseManagementApp.Repository
                          .FirstOrDefault(o => o.Id == id);
         }
 
-        public bool SoftDelete(int id)
+        public bool SoftDelete(Order order)
         {
-            var order = GetOrderWithDetails(id);
-            if (order == null)
-                return false;
             order.DeletedAt = DateTime.UtcNow;
             return Update(order);
         }

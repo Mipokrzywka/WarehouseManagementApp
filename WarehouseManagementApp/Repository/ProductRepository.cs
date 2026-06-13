@@ -47,11 +47,8 @@ namespace WarehouseManagementApp.Repository
         {
             return _dbSet.Any(p => p.Name == name && p.CategoryId == categoryId && p.Id != productId && p.DeletedAt == null);
         }
-        public bool SoftDelete(int id)
+        public bool SoftDelete(Product product)
         {
-            var product = GetById(id);
-            if (product == null)
-                return false;
             product.DeletedAt = DateTime.UtcNow;
             return Update(product);
         }

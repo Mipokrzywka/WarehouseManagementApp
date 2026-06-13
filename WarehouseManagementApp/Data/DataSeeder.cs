@@ -116,14 +116,14 @@ namespace WarehouseManagementApp.Data
             );
 
             // 7. SEED: Zamówienia (Orders) i produkty w zamówieniach
-            var order1 = new Order { Id = 1, StatusId = 1, CreatorId = 2, CostAmt = 3950.50m };
+            //var order1 = new Order { Id = 1, StatusId = 1, CreatorId = 2, CostAmt = 3950.50m };
 
-            modelBuilder.Entity<Order>().HasData(order1);
+            //modelBuilder.Entity<Order>().HasData(order1);
 
-            modelBuilder.Entity<OrderProduct>().HasData(
-                new OrderProduct { OrderId = 1, ProductId = 1, Quantity = 1, CostAmt = 3500.00m },
-                new OrderProduct { OrderId = 1, ProductId = 2, Quantity = 1, CostAmt = 450.50m }
-            );
+            //modelBuilder.Entity<OrderProduct>().HasData(
+            //    new OrderProduct {OrderId = 1, ProductId = 1, Quantity = 1, CostAmt = 3500.00m },
+            //    new OrderProduct {OrderId = 1, ProductId = 2, Quantity = 1, CostAmt = 450.50m }
+            //);
 
             // 8. SEED: Logi aktywności (ActivityLog)
             modelBuilder.Entity<ActivityLog>().HasData(

@@ -100,7 +100,7 @@ namespace WarehouseManagementApp.Controllers
                 return NotFound($"Product with id {productId} does not exist.");
             if (_productRepository.NameCategoryExists(productDto.Name, productDto.CategoryId, productId))
                 return BadRequest($"Another product with name {productDto.Name} already exists in category {productDto.CategoryId}.");
-            var oldProductData = existingProduct.ToReadDto();
+            var oldProductData = System.Text.Json.JsonSerializer.Serialize(existingProduct.ToReadDto());
             ProductMapper.UpdateFromDto(existingProduct, productDto);
             if (!_productRepository.Update(existingProduct))
                 return StatusCode(500, "Failed to update product.");
@@ -111,7 +111,7 @@ namespace WarehouseManagementApp.Controllers
                 Action = "Update",
                 UserId = 1, // Replace with actual user ID from authentication context
                 CreatedAt = DateTime.UtcNow,
-                OldData = System.Text.Json.JsonSerializer.Serialize(oldProductData),
+                OldData = oldProductData,
                 NewData = System.Text.Json.JsonSerializer.Serialize(existingProduct.ToReadDto())
             };
             _activityLogRepository.LogActivity(log);
@@ -126,8 +126,8 @@ namespace WarehouseManagementApp.Controllers
             var product = _productRepository.GetById(productId);
             if (product == null)
                 return NotFound($"Product with id {productId} does not exist.");
-            var oldProductData = product.ToReadDto();
-            if (!_productRepository.SoftDelete(productId))
+            var oldProductData = System.Text.Json.JsonSerializer.Serialize(product.ToReadDto());
+            if (!_productRepository.SoftDelete(product))
                 return StatusCode(500, "Failed to delete product.");
             ActivityLog log = new ActivityLog()
             {
@@ -136,7 +136,8 @@ namespace WarehouseManagementApp.Controllers
                 Action = "Delete",
                 UserId = 1, // Replace with actual user ID from authentication context
                 CreatedAt = DateTime.UtcNow,
-                OldData = System.Text.Json.JsonSerializer.Serialize(oldProductData)
+                OldData = oldProductData,
+                NewData = ""
             };
             _activityLogRepository.LogActivity(log);
             return NoContent();
