@@ -5,6 +5,7 @@ using WarehouseManagementApp.Data;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.DTOs;
+using WarehouseManagementApp.Enums;
 
 
 namespace WarehouseManagementApp.Controllers
@@ -14,13 +15,15 @@ namespace WarehouseManagementApp.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
-        public ProductsController(IProductRepository productRepository)
+        private readonly IActivityLogRepository _activityLogRepository;
+        public ProductsController(IProductRepository productRepository, IActivityLogRepository activityLogRepository)
         {
             _productRepository = productRepository;
+            _activityLogRepository = activityLogRepository;
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Product>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ProductReadDto>))]
 
         public IActionResult GetProducts()
         {
@@ -31,7 +34,7 @@ namespace WarehouseManagementApp.Controllers
         }
 
         [HttpGet("{productId:int}")]
-        [ProducesResponseType(200, Type = typeof(Product))]
+        [ProducesResponseType(200, Type = typeof(ProductReadDto))]
         [ProducesResponseType(404)]
         public IActionResult GetProductById(int productId)
         {      
@@ -41,7 +44,7 @@ namespace WarehouseManagementApp.Controllers
             return Ok(product.ToReadDto());
         }
         [HttpGet("qr/{qrCode}")]
-        [ProducesResponseType(200, Type = typeof(Product))]
+        [ProducesResponseType(200, Type = typeof(ProductReadDto))]
         [ProducesResponseType(404)]
         public IActionResult GetProductByQrCode(string qrCode)
         {
@@ -51,7 +54,7 @@ namespace WarehouseManagementApp.Controllers
             return Ok(product.ToReadDto());
         }
         [HttpGet("category/{categoryId:int}")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Product>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ProductReadDto>))]
         public IActionResult GetProductsByCategoryId(int categoryId)
         {
             var products = _productRepository.GetByCategory(categoryId);
@@ -60,7 +63,7 @@ namespace WarehouseManagementApp.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(Product))]
+        [ProducesResponseType(201, Type = typeof(ProductReadDto))]
         [ProducesResponseType(400)]
         public IActionResult CreateProduct([FromBody] ProductCreateDto productDto)
         {
@@ -71,6 +74,16 @@ namespace WarehouseManagementApp.Controllers
             var createdProduct = ProductMapper.CreateDtoToProduct(productDto);
             if (!_productRepository.Create(createdProduct))
                 return StatusCode(500, "Failed to create product.");
+            ActivityLog log = new ActivityLog()
+            {
+                ModuleId = (int)ModuleEnum.Products,
+                ComponentId = createdProduct.Id,
+                Action = "Create",
+                UserId = 1, // Replace with actual user ID from authentication context
+                CreatedAt = DateTime.UtcNow,
+                NewData = System.Text.Json.JsonSerializer.Serialize(createdProduct.ToReadDto())
+            };
+            _activityLogRepository.LogActivity(log);
             return CreatedAtAction(nameof(GetProductById), new { productId = createdProduct.Id }, createdProduct.ToReadDto());
         }
         [HttpPut("{productId:int}")]
@@ -87,9 +100,21 @@ namespace WarehouseManagementApp.Controllers
                 return NotFound($"Product with id {productId} does not exist.");
             if (_productRepository.NameCategoryExists(productDto.Name, productDto.CategoryId, productId))
                 return BadRequest($"Another product with name {productDto.Name} already exists in category {productDto.CategoryId}.");
+            var oldProductData = existingProduct.ToReadDto();
             ProductMapper.UpdateFromDto(existingProduct, productDto);
             if (!_productRepository.Update(existingProduct))
                 return StatusCode(500, "Failed to update product.");
+            ActivityLog log = new ActivityLog()
+            {
+                ModuleId = (int)ModuleEnum.Products,
+                ComponentId = existingProduct.Id,
+                Action = "Update",
+                UserId = 1, // Replace with actual user ID from authentication context
+                CreatedAt = DateTime.UtcNow,
+                OldData = System.Text.Json.JsonSerializer.Serialize(oldProductData),
+                NewData = System.Text.Json.JsonSerializer.Serialize(existingProduct.ToReadDto())
+            };
+            _activityLogRepository.LogActivity(log);
             return NoContent();
         }
         [HttpDelete("{productId:int}")]
@@ -98,10 +123,22 @@ namespace WarehouseManagementApp.Controllers
 
         public IActionResult DeleteProduct(int productId)
         {
-            if (!_productRepository.Exists(productId))
+            var product = _productRepository.GetById(productId);
+            if (product == null)
                 return NotFound($"Product with id {productId} does not exist.");
+            var oldProductData = product.ToReadDto();
             if (!_productRepository.SoftDelete(productId))
                 return StatusCode(500, "Failed to delete product.");
+            ActivityLog log = new ActivityLog()
+            {
+                ModuleId = (int)ModuleEnum.Products,
+                ComponentId = productId,
+                Action = "Delete",
+                UserId = 1, // Replace with actual user ID from authentication context
+                CreatedAt = DateTime.UtcNow,
+                OldData = System.Text.Json.JsonSerializer.Serialize(oldProductData)
+            };
+            _activityLogRepository.LogActivity(log);
             return NoContent();
         }
     }

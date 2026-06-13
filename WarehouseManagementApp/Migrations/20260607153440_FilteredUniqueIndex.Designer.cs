@@ -415,7 +415,7 @@ namespace WarehouseManagementApp.Migrations
 
                     b.HasIndex("Name", "CategoryId")
                         .IsUnique()
-                        .HasFilter("[Deleted_at] IS NULL");
+                        .HasFilter("[DeletedAt] IS NULL");
 
                     b.ToTable("Products");
 

@@ -2,16 +2,10 @@
 
 namespace WarehouseManagementApp.Interfaces
 {
-    public interface IProductCategoryRepository
+    public interface IProductCategoryRepository : IRepository<ProductCategory>
     {
-        ICollection<ProductCategory> GetAll();
-        ProductCategory? GetById(int id);
         ProductCategory? GetByName(string name);
-        bool Create(ProductCategory category);
-        bool Update(ProductCategory category);
-        bool SoftDelete(int id);
-        bool Save();
-        bool Exists(int id);
         bool NameExists(string name, int categoryId = 0);
+        bool SoftDelete(int id);
     }
 }

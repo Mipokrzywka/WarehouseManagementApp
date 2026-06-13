@@ -32,7 +32,7 @@ namespace WarehouseManagementApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
-
+            // Configure composite keys for many-to-many relationships
             modelBuilder.Entity<UserRole>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId, });
 
@@ -45,10 +45,11 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<RolePermission>()
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId});
 
-
+            // Configure unique indexes and relationships
             modelBuilder.Entity<Product>()
                 .HasIndex(p => p.QrCode)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[DeletedAt] IS NULL");
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
@@ -58,19 +59,22 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<Product>()
                 .HasIndex(p => new { p.Name, p.CategoryId })
                 .IsUnique()
-                .HasFilter("[Deleted_at] IS NULL");
+                .HasFilter("[DeletedAt] IS NULL");
 
             modelBuilder.Entity<ProductCategory>()
                 .HasIndex(pc => pc.Name)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[DeletedAt] IS NULL");
 
             modelBuilder.Entity<Role>()
                 .HasIndex(r => r.Name)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[DeletedAt] IS NULL");
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[DeletedAt] IS NULL");
 
             modelBuilder.Entity<Module>()
                 .HasIndex(m => m.Name)
@@ -82,8 +86,10 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<Permission>()
                 .HasIndex(p => p.Name)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[DeletedAt] IS NULL");
 
+            // Configure decimal precision for cost amounts
             modelBuilder.Entity<Product>()
                 .Property(p => p.CostAmt)
                 .HasPrecision(10, 2);
@@ -96,17 +102,33 @@ namespace WarehouseManagementApp.Data
                 .Property(o => o.CostAmt)
                 .HasPrecision(10, 2);
 
+            // Configure relationships for Order entity
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CreatedBy)
                 .WithMany()
                 .HasForeignKey(o => o.CreatorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-               modelBuilder.Entity<Order>()
+            modelBuilder.Entity<Order>()
                 .HasOne(o => o.Reviewer)
                 .WithMany()
                 .HasForeignKey(o => o.ReviewerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure global query filters for soft deletion
+            modelBuilder.Entity<Product>()
+                .HasQueryFilter(p => p.DeletedAt == null);
+            modelBuilder.Entity<Order>()
+                .HasQueryFilter(o => o.DeletedAt == null);
+            modelBuilder.Entity<Permission>()
+                .HasQueryFilter(p => p.DeletedAt == null);
+            modelBuilder.Entity<ProductCategory>()
+                .HasQueryFilter(pc => pc.DeletedAt == null);
+            modelBuilder.Entity<Role>()
+                .HasQueryFilter(r => r.DeletedAt == null);
+            modelBuilder.Entity<User>()
+                .HasQueryFilter(u => u.DeletedAt == null);
+
 
             DataSeeder.Seed(modelBuilder);
         }

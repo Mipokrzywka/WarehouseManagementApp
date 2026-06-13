@@ -15,6 +15,7 @@ namespace WarehouseManagementApp.Mappers
                 Quantity = product.Quantity,
                 CostAmt = product.CostAmt,
                 CategoryId = product.CategoryId,
+                CategoryName = product.Category != null ? product.Category.Name : string.Empty,
                 ForecastDepletionDate = product.ForecastDepletionDate ?? DateTime.MinValue
             };
         }

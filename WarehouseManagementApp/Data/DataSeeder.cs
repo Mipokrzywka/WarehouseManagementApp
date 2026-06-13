@@ -7,12 +7,13 @@ namespace WarehouseManagementApp.Data
     {
         public static void Seed(ModelBuilder modelBuilder)
         {          
-            var statusNew = new OrderStatus { Id = 1, Name = "Nowe" };
-            var statusProcessing = new OrderStatus { Id = 2, Name = "W realizacji" };
-            var statusShipped = new OrderStatus { Id = 3, Name = "Wysłane" };
-            var statusCancelled = new OrderStatus { Id = 4, Name = "Anulowane" };
+            var statusNew = new OrderStatus { Id = 1, Name = "New" };
+            var statusProcessing = new OrderStatus { Id = 2, Name = "Processing" };
+            var statusApproved = new OrderStatus { Id = 3, Name = "Approved" };
+            var statusRejected = new OrderStatus { Id = 4, Name = "Rejected" };
+            var statusCompleted = new OrderStatus { Id = 5, Name = "Completed" };
 
-            modelBuilder.Entity<OrderStatus>().HasData(statusNew, statusProcessing, statusShipped, statusCancelled);
+            modelBuilder.Entity<OrderStatus>().HasData(statusNew, statusProcessing, statusApproved, statusRejected, statusCompleted);
 
             var taskTodo = new WarehouseManagementApp.Models.TaskStatus { Id = 1, Name = "Do zrobienia" };
             var taskInProg = new WarehouseManagementApp.Models.TaskStatus { Id = 2, Name = "W toku" };
