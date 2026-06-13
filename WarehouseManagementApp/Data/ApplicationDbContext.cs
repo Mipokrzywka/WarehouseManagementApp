@@ -87,8 +87,7 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<Permission>()
                 .HasIndex(p => p.Name)
-                .IsUnique()
-                .HasFilter("[DeletedAt] IS NULL");
+                .IsUnique();
 
             // Configure decimal precision for cost amounts
             modelBuilder.Entity<Product>()
@@ -125,9 +124,7 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<Product>()
                 .HasQueryFilter(p => p.DeletedAt == null);
             modelBuilder.Entity<Order>()
-                .HasQueryFilter(o => o.DeletedAt == null);
-            modelBuilder.Entity<Permission>()
-                .HasQueryFilter(p => p.DeletedAt == null);
+                .HasQueryFilter(o => o.DeletedAt == null);          
             modelBuilder.Entity<ProductCategory>()
                 .HasQueryFilter(pc => pc.DeletedAt == null);
             modelBuilder.Entity<Role>()
