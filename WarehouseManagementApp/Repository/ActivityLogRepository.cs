@@ -8,7 +8,7 @@ namespace WarehouseManagementApp.Repository
     public class ActivityLogRepository : Repository<ActivityLog>, IActivityLogRepository
     {
         public ActivityLogRepository(ApplicationDbContext context) : base(context) { }
-        public ICollection<ActivityLog> GetActivityLogs(string moduleName, int moduleId)
+        public IEnumerable<ActivityLog> GetActivityLogs(string moduleName, int moduleId)
         {
             return
             _dbSet.Include(a => a.User)

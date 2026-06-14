@@ -21,11 +21,12 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<WarehouseManagementApp.Models.TaskStatus>().HasData(taskTodo, taskInProg, taskDone);
 
-            var moduleWarehouse = new Module { Id = 1, Name = "Magazyn" };
-            var moduleOrders = new Module { Id = 2, Name = "Zamówienia" };
-            var moduleUsers = new Module { Id = 3, Name = "Użytkownicy" };
+            var moduleProducts= new Module { Id = 1, Name = "Products" };
+            var moduleProductCategories = new Module { Id = 2, Name = "Product categories" };
+            var moduleOrders = new Module { Id = 3, Name = "Orders" };
+            var moduleRoles = new Module { Id = 4, Name = "Roles" };
 
-            modelBuilder.Entity<Module>().HasData(moduleWarehouse, moduleOrders, moduleUsers);
+            modelBuilder.Entity<Module>().HasData(moduleProducts, moduleProductCategories, moduleOrders, moduleRoles);
 
             var catElectronics = new ProductCategory { Id = 1, Name = "Elektronika" };
             var catTools = new ProductCategory { Id = 2, Name = "Narzędzia" };
@@ -47,14 +48,14 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<Role>().HasData(roleAdmin, roleManager, roleWorker);
 
             // Tabela łącznikowa: Role <-> Uprawnienia (Wiele-do-Wielu)
-            modelBuilder.Entity<RolePermission>().HasData(
-                new RolePermission { RoleId = 1, PermissionId = 1 },
-                new RolePermission { RoleId = 1, PermissionId = 2 },
-                new RolePermission { RoleId = 1, PermissionId = 3 },
-                new RolePermission { RoleId = 2, PermissionId = 1 },
-                new RolePermission { RoleId = 2, PermissionId = 2 },
-                new RolePermission { RoleId = 3, PermissionId = 1 }
-            );
+            //modelBuilder.Entity<RolePermission>().HasData(
+            //    new RolePermission { RoleId = 1, PermissionId = 1 },
+            //    new RolePermission { RoleId = 1, PermissionId = 2 },
+            //    new RolePermission { RoleId = 1, PermissionId = 3 },
+            //    new RolePermission { RoleId = 2, PermissionId = 1 },
+            //    new RolePermission { RoleId = 2, PermissionId = 2 },
+            //    new RolePermission { RoleId = 3, PermissionId = 1 }
+            //);
 
             // 3. SEED: Użytkownicy i ich role
             var userAdmin = new User
@@ -77,10 +78,10 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<User>().HasData(userAdmin, userWorker);
 
             // Tabela łącznikowa: Użytkownicy <-> Role
-            modelBuilder.Entity<UserRole>().HasData(
-                new UserRole { UserId = 1, RoleId = 1 },
-                new UserRole { UserId = 2, RoleId = 3 }
-            );
+            //modelBuilder.Entity<UserRole>().HasData(
+            //    new UserRole { UserId = 1, RoleId = 1 },
+            //    new UserRole { UserId = 2, RoleId = 3 }
+            //);
 
             // 4. SEED: Powiadomienia dla użytkowników
             var notifWelcome = new Notification { Id = 1, Content = "Witaj w systemie WMS! Zmień swoje hasło po pierwszym zalogowaniu." };

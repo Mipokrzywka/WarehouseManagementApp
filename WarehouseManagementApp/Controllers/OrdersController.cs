@@ -247,6 +247,8 @@ public class OrdersController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
     public IActionResult DeleteOrder(int id)
     {
         var order = _orderRepository.GetOrderWithDetails(id);
