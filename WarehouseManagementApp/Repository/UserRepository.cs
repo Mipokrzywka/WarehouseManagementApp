@@ -28,7 +28,9 @@ namespace WarehouseManagementApp.Repository
                                     .ThenInclude(rp => rp.Permission);
             if (id != 0)
                 return users.FirstOrDefault(u => u.Id == id);
-            return users.FirstOrDefault(u => u.Email == email);
+            if (!string.IsNullOrEmpty(email))
+                return users.FirstOrDefault(u => u.Email == email);
+            return null;
         }
 
         public bool SoftDelete(User user)
