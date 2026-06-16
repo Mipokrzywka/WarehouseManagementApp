@@ -8,5 +8,6 @@ namespace WarehouseManagementApp.Enums
         ProductCategories = 2,
         Orders = 3,
         Roles = 4,
+        Users = 5,
     }
 }

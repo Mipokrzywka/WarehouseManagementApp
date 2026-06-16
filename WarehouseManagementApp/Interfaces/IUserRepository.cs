@@ -7,5 +7,6 @@ namespace WarehouseManagementApp.Interfaces
         IEnumerable<User> GetAllUsersWithRoles();
         User? GetUserWithRolesAndPermissions(int  id = 0, string email = "");
         bool SoftDelete(User user);
+        bool EmailExists(string email);
     }
 }

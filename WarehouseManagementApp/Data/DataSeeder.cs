@@ -25,8 +25,9 @@ namespace WarehouseManagementApp.Data
             var moduleProductCategories = new Module { Id = 2, Name = "Product categories" };
             var moduleOrders = new Module { Id = 3, Name = "Orders" };
             var moduleRoles = new Module { Id = 4, Name = "Roles" };
+            var moduleUsers = new Module { Id = 5, Name = "Users" };
 
-            modelBuilder.Entity<Module>().HasData(moduleProducts, moduleProductCategories, moduleOrders, moduleRoles);
+            modelBuilder.Entity<Module>().HasData(moduleProducts, moduleProductCategories, moduleOrders, moduleRoles, moduleUsers);
 
             var catElectronics = new ProductCategory { Id = 1, Name = "Elektronika" };
             var catTools = new ProductCategory { Id = 2, Name = "Narzędzia" };

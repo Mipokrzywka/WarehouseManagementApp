@@ -11,6 +11,12 @@ namespace WarehouseManagementApp.Repository
         {
         }
 
+        public bool EmailExists(string email)
+        {
+            return _dbSet
+                   .Any(u => u.Email.ToLower() == email.ToLower());
+        }
+
         public IEnumerable<User> GetAllUsersWithRoles()
         {
             return _dbSet
@@ -32,6 +38,8 @@ namespace WarehouseManagementApp.Repository
                 return users.FirstOrDefault(u => u.Email == email);
             return null;
         }
+
+        
 
         public bool SoftDelete(User user)
         {

@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WarehouseManagementApp.Models;
+using System.Data;
+using System.Xml;
 using WarehouseManagementApp.Data;
-using WarehouseManagementApp.Interfaces;
-using WarehouseManagementApp.Repository;
 using WarehouseManagementApp.DTOs;
+using WarehouseManagementApp.Enums;
+using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
+using WarehouseManagementApp.Models;
+using WarehouseManagementApp.Repository;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -14,12 +17,18 @@ public class UsersController : ControllerBase
     private readonly IRoleRepository _roleRepository;
     private readonly IUserRepository _userRepository;
     private readonly IActivityLogRepository _activityLogRepository;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public UsersController(IRoleRepository roleRepository, IUserRepository userRepository, IActivityLogRepository activityLogRepository)
+    public UsersController(
+        IRoleRepository roleRepository,
+        IUserRepository userRepository,
+        IActivityLogRepository activityLogRepository,
+        IPasswordHasher passwordHasher)
     {
         _roleRepository = roleRepository;
         _userRepository = userRepository;
         _activityLogRepository = activityLogRepository;
+        _passwordHasher = passwordHasher;
     }
 
     [HttpGet]
@@ -31,74 +40,200 @@ public class UsersController : ControllerBase
         return Ok(usersDto);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(200, Type = typeof(UserReadDto))]
+    [ProducesResponseType(404)]
+    public IActionResult GetUserById(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-
+        var user = _userRepository.GetUserWithRolesAndPermissions(id);
         if (user == null)
-        {
-            return NotFound();
-        }
-
-        return user;
+            return NotFound($"User with id {id} does not exist");
+        return Ok(user.ToReadDto());
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutUser(int? id, User user)
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public IActionResult UpdateUser(int id, [FromBody] UserUpdateDto dto)
     {
-        if (id != user.Id)
-        {
-            return BadRequest();
-        }
+        if (dto == null)
+            return BadRequest("Incorrect user data");
+        var user = _userRepository.GetUserWithRolesAndPermissions(id);
+        if (user == null)
+            return BadRequest($"User with id {id} does not exist");
 
-        _context.Entry(user).State = EntityState.Modified;
+        var existingRoles = _roleRepository.GetAll().Select(r => r.Id).ToList();
+        var invalidRoles = dto.RoleIds.Except(existingRoles).ToList();
 
-        try
+        if (invalidRoles.Any())
+            return BadRequest($"Roles with ids {string.Join(", ", invalidRoles)} do not exist");
+        var oldData = System.Text.Json.JsonSerializer.Serialize(user.ToReadDto());
+        user.FirstName = dto.FirstName;
+        user.Surname = dto.Surname;
+        user.UpdatedAt = DateTime.UtcNow;
+        user.UserRoles = dto.RoleIds.Select(rId => new UserRole
         {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
+            RoleId = rId,
+        }).ToList();
+
+        if (!_userRepository.Update(user))
+            return BadRequest("Failed to update user");
+
+        var newData = System.Text.Json.JsonSerializer.Serialize(user.ToReadDto());
+        ActivityLog log = new ActivityLog()
         {
-            if (!UserExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
+            ModuleId = (int)ModuleEnum.Users,
+            ComponentId = user.Id,
+            Action = "Update",
+            UserId = 1, // Add user that created the user
+            CreatedAt = DateTime.UtcNow,
+            OldData = oldData,
+            NewData = newData
+        };
+
+        _activityLogRepository.Create(log);
 
         return NoContent();
     }
+
+    [HttpPost("Login")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(401)]
+    public IActionResult Login([FromBody] UserLoginDto dto)
+    {
+        var user = _userRepository.GetUserWithRolesAndPermissions(email: dto.Email);
+        if (user == null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
+            return Unauthorized("Wrong email or password");
+
+        var userDto = user.ToReadDto();
+        ActivityLog log = new ActivityLog()
+        {
+            ModuleId = (int)ModuleEnum.Users,
+            ComponentId = user.Id,
+            Action = "Login",
+            UserId = 1, // Add user that deleted the user
+            CreatedAt = DateTime.UtcNow,
+            OldData = "",
+            NewData = ""
+        };
+        _activityLogRepository.Create(log);
+        return Ok(new
+        {
+            Message = "Login succesfull",
+            User = userDto
+        });
+    }
+
+    //
+
+    [HttpPut("{id:int}/ChangePassword")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public IActionResult ChangePassword(int id, [FromBody] UserPasswordUpdateDto dto)
+    {
+        var user = _userRepository.GetUserWithRolesAndPermissions(id);
+        if (user == null)
+            return NotFound($"User with id {id} does not exist");
+        if (!_passwordHasher.VerifyPassword(dto.CurrentPassword, user.PasswordHash))
+            return BadRequest("Current password is incorrect");
+        user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        if (!_userRepository.Update(user))
+            return BadRequest("Failed to update password");
+        ActivityLog log = new ActivityLog()
+        {
+            ModuleId = (int)ModuleEnum.Users,
+            ComponentId = user.Id,
+            Action = "Password change",
+            UserId = 1, // Add user that deleted the user
+            CreatedAt = DateTime.UtcNow,
+            OldData = "",
+            NewData = ""
+        };
+        _activityLogRepository.Create(log);
+        return NoContent();
+    }
+
 
     [HttpPost]
-    public async Task<ActionResult<User>> PostUser(User user)
+    [ProducesResponseType(201, Type = typeof(UserReadDto))]
+    [ProducesResponseType(400)]
+    public IActionResult CreateUser([FromBody] UserCreateDto dto)
     {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        if (dto == null)
+            return BadRequest("Invalid user data");
+        if (dto.RoleIds == null || !dto.RoleIds.Any())
+            return BadRequest("User must have at least one role");
+        if (_userRepository.EmailExists(dto.Email))
+            return BadRequest($"User with email {dto.Email} already exists");
 
-        return CreatedAtAction("GetUser", new { id = user.Id }, user);
-    }
+        var existingRoles = _roleRepository.GetAll().Select(r => r.Id).ToList();
+        var invalidRoles = dto.RoleIds.Except(existingRoles).ToList();
+        if (invalidRoles.Any())
+            return BadRequest($"Roles with ids {string.Join(", ", invalidRoles)} do not exist");
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int? id)
-    {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
+        string hashedPassword = _passwordHasher.HashPassword(dto.Password);
+
+        var createdUser = new User()
         {
-            return NotFound();
-        }
+            Email = dto.Email,
+            FirstName = dto.FirstName,
+            Surname = dto.Surname,
+            PasswordHash = hashedPassword,
+            CreatedAt = DateTime.UtcNow,
+            UserRoles = dto.RoleIds.Select(rId => new UserRole
+            {
+                RoleId = rId,
+            }).ToList()
+        };
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
+            if (!_userRepository.Create(createdUser))
+                return BadRequest("Failed to create user");
 
-        return NoContent();
+        var fetchedUser = _userRepository.GetUserWithRolesAndPermissions(createdUser.Id);
+        if (fetchedUser == null)
+            return BadRequest("User created, but failed to fetch data");
+        var userReadDto = fetchedUser.ToReadDto();
+        var newData = System.Text.Json.JsonSerializer.Serialize(userReadDto);
+
+        ActivityLog log = new ActivityLog()
+        {
+            ModuleId = (int)ModuleEnum.Users,
+            ComponentId = createdUser.Id,
+            Action = "Create",
+            UserId = 1, // Add user that deleted the user
+            CreatedAt = DateTime.UtcNow,
+            OldData = "",
+            NewData = newData
+        };
+        _activityLogRepository.Create(log);
+        return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, userReadDto);
     }
 
-    private bool UserExists(int? id)
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public IActionResult DeleteUser(int id)
     {
-        return _context.Users.Any(e => e.Id == id);
+        var user = _userRepository.GetUserWithRolesAndPermissions(id);
+        if (user == null)
+            return NotFound($"User with id {id} does not exist");
+        var oldData = System.Text.Json.JsonSerializer.Serialize(user.ToReadDto());
+        if (!_userRepository.SoftDelete(user))
+            return BadRequest("Failed to delete user");
+        ActivityLog log = new ActivityLog()
+        {
+            ModuleId = (int)ModuleEnum.Users,
+            ComponentId = user.Id,
+            Action = "Delete",
+            UserId = 1, // Add user that deleted the user
+            CreatedAt = DateTime.UtcNow,
+            OldData = oldData,
+            NewData = ""
+        };
+        _activityLogRepository.Create(log);
+        return NoContent();
     }
 }
