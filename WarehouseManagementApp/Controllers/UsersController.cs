@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Xml;
+using WarehouseManagementApp.Controllers;
 using WarehouseManagementApp.Data;
 using WarehouseManagementApp.DTOs;
 using WarehouseManagementApp.Enums;
@@ -12,23 +13,26 @@ using WarehouseManagementApp.Repository;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController : ControllerBase
+public class UsersController : BaseApiController
 {
     private readonly IRoleRepository _roleRepository;
     private readonly IUserRepository _userRepository;
     private readonly IActivityLogRepository _activityLogRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ITokenService _tokenService;
 
     public UsersController(
         IRoleRepository roleRepository,
         IUserRepository userRepository,
         IActivityLogRepository activityLogRepository,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        ITokenService tokenService)
     {
         _roleRepository = roleRepository;
         _userRepository = userRepository;
         _activityLogRepository = activityLogRepository;
         _passwordHasher = passwordHasher;
+        _tokenService = tokenService;
     }
 
     [HttpGet]
@@ -86,7 +90,7 @@ public class UsersController : ControllerBase
             ModuleId = (int)ModuleEnum.Users,
             ComponentId = user.Id,
             Action = "Update",
-            UserId = 1, // Add user that created the user
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = newData
@@ -106,13 +110,15 @@ public class UsersController : ControllerBase
         if (user == null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
             return Unauthorized("Wrong email or password");
 
+        var token = _tokenService.GenerateToken(user);
+
         var userDto = user.ToReadDto();
         ActivityLog log = new ActivityLog()
         {
             ModuleId = (int)ModuleEnum.Users,
             ComponentId = user.Id,
             Action = "Login",
-            UserId = 1, // Add user that deleted the user
+            UserId = user.Id, 
             CreatedAt = DateTime.UtcNow,
             OldData = "",
             NewData = ""
@@ -120,12 +126,11 @@ public class UsersController : ControllerBase
         _activityLogRepository.Create(log);
         return Ok(new
         {
-            Message = "Login succesfull",
+            Token = token,
             User = userDto
         });
     }
 
-    //
 
     [HttpPut("{id:int}/ChangePassword")]
     [ProducesResponseType(204)]
@@ -147,7 +152,7 @@ public class UsersController : ControllerBase
             ModuleId = (int)ModuleEnum.Users,
             ComponentId = user.Id,
             Action = "Password change",
-            UserId = 1, // Add user that deleted the user
+            UserId = CurrentUserID, // Add user that deleted the user
             CreatedAt = DateTime.UtcNow,
             OldData = "",
             NewData = ""
@@ -203,7 +208,7 @@ public class UsersController : ControllerBase
             ModuleId = (int)ModuleEnum.Users,
             ComponentId = createdUser.Id,
             Action = "Create",
-            UserId = 1, // Add user that deleted the user
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = "",
             NewData = newData
@@ -228,7 +233,7 @@ public class UsersController : ControllerBase
             ModuleId = (int)ModuleEnum.Users,
             ComponentId = user.Id,
             Action = "Delete",
-            UserId = 1, // Add user that deleted the user
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = ""
