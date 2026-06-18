@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -102,6 +103,7 @@ public class UsersController : BaseApiController
     }
 
     [HttpPost("Login")]
+    [AllowAnonymous]
     [ProducesResponseType(200)]
     [ProducesResponseType(401)]
     public IActionResult Login([FromBody] UserLoginDto dto)
