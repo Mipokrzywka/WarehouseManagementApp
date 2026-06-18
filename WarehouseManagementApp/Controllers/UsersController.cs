@@ -11,6 +11,7 @@ using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.Models;
 using WarehouseManagementApp.Repository;
+using WarehouseManagementApp.Security;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -37,6 +38,7 @@ public class UsersController : BaseApiController
     }
 
     [HttpGet]
+    [Authorize(Policy = AppPermissions.UsersRead)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserReadDto>))]
     public IActionResult GetUsers()
     {
@@ -46,6 +48,7 @@ public class UsersController : BaseApiController
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Policy = AppPermissions.UsersRead)]
     [ProducesResponseType(200, Type = typeof(UserReadDto))]
     [ProducesResponseType(404)]
     public IActionResult GetUserById(int id)
@@ -57,6 +60,7 @@ public class UsersController : BaseApiController
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = AppPermissions.UsersManage)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -134,12 +138,13 @@ public class UsersController : BaseApiController
     }
 
 
-    [HttpPut("{id:int}/ChangePassword")]
+    [HttpPut("ChangePassword")]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
-    public IActionResult ChangePassword(int id, [FromBody] UserPasswordUpdateDto dto)
+    public IActionResult ChangePassword([FromBody] UserPasswordUpdateDto dto)
     {
+        int id = CurrentUserID;
         var user = _userRepository.GetUserWithRolesAndPermissions(id);
         if (user == null)
             return NotFound($"User with id {id} does not exist");
@@ -154,7 +159,7 @@ public class UsersController : BaseApiController
             ModuleId = (int)ModuleEnum.Users,
             ComponentId = user.Id,
             Action = "Password change",
-            UserId = CurrentUserID, // Add user that deleted the user
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = "",
             NewData = ""
@@ -165,6 +170,7 @@ public class UsersController : BaseApiController
 
 
     [HttpPost]
+    [Authorize(Policy = AppPermissions.UsersManage)]
     [ProducesResponseType(201, Type = typeof(UserReadDto))]
     [ProducesResponseType(400)]
     public IActionResult CreateUser([FromBody] UserCreateDto dto)
@@ -220,6 +226,7 @@ public class UsersController : BaseApiController
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = AppPermissions.UsersManage)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public IActionResult DeleteUser(int id)

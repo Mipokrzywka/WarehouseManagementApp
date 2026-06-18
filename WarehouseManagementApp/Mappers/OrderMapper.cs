@@ -27,7 +27,6 @@ namespace WarehouseManagementApp.Mappers
             return new Order
             {
                 StatusId = (int)OrderStatusEnum.New,
-                CreatorId = dto.CreatorId,
                 OrderProducts = dto.OrderProducts != null ?
                     dto.OrderProducts.Select(op => op.CreateDtoToOrderProduct()).ToList()
                     : new List<OrderProduct>()

@@ -2,14 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarehouseManagementApp.Models;
 using WarehouseManagementApp.Data;
+using System.Text.Json;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.DTOs;
 using WarehouseManagementApp.Enums;
+using WarehouseManagementApp.Controllers;
+using Microsoft.AspNetCore.Authorization;
+using WarehouseManagementApp.Security;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ProductCategoriesController : ControllerBase
+public class ProductCategoriesController : BaseApiController
 {
     private readonly IProductCategoryRepository _productCategoryRepository;
     private readonly IActivityLogRepository _activityLogRepository;
@@ -20,6 +24,7 @@ public class ProductCategoriesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AppPermissions.ProductCategoriesRead)]
     [ProducesResponseType (200, Type = typeof(IEnumerable<ProductCategoryReadDto>))]
     public IActionResult GetProductCategories()
     {
@@ -30,6 +35,7 @@ public class ProductCategoriesController : ControllerBase
     }
 
     [HttpGet("{productCategoryId:int}")]
+    [Authorize(Policy = AppPermissions.ProductCategoriesRead)]
     [ProducesResponseType(200, Type = typeof(ProductCategoryReadDto))]
     [ProducesResponseType(404)]
     public IActionResult GetProductCategoryById(int productCategoryId)
@@ -45,6 +51,7 @@ public class ProductCategoriesController : ControllerBase
     }
 
     [HttpPut("{productCategoryId:int}")]
+    [Authorize(Policy = AppPermissions.ProductCategoriesManage)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -57,7 +64,7 @@ public class ProductCategoriesController : ControllerBase
             return NotFound($"Product category with id {productCategoryId} does not exist");        
         if (_productCategoryRepository.NameExists(productCategoryDto.Name, existingProductCategory.Id))
             return BadRequest($"Product category with name {productCategoryDto.Name} already exists");
-        var originalData = System.Text.Json.JsonSerializer.Serialize(existingProductCategory.ToReadDto());
+        var originalData = JsonSerializer.Serialize(existingProductCategory.ToReadDto());
         ProductCategoryMapper.UpdateFromDto(existingProductCategory, productCategoryDto);
         if (!_productCategoryRepository.Update(existingProductCategory))
             return StatusCode(500, "Failed to update product category");
@@ -66,10 +73,10 @@ public class ProductCategoriesController : ControllerBase
             ModuleId = (int)ModuleEnum.ProductCategories,
             ComponentId = existingProductCategory.Id,
             Action = "Update",
-            UserId = 1, // Replace with actual user ID from authentication context
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = originalData,
-            NewData = System.Text.Json.JsonSerializer.Serialize(existingProductCategory.ToReadDto())
+            NewData = JsonSerializer.Serialize(existingProductCategory.ToReadDto())
         };
         _activityLogRepository.LogActivity(log);
         return NoContent();
@@ -77,6 +84,7 @@ public class ProductCategoriesController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Policy = AppPermissions.ProductCategoriesManage)]
     [ProducesResponseType(201, Type = typeof(ProductCategoryReadDto))]
     [ProducesResponseType(400)]
     public IActionResult CreateProductCategory([FromBody] ProductCategoryCreateDto productCategoryDto)
@@ -93,15 +101,16 @@ public class ProductCategoriesController : ControllerBase
             ModuleId = (int)ModuleEnum.ProductCategories,
             ComponentId = createdProductCategory.Id,
             Action = "Create",
-            UserId = 1, // Replace with actual user ID from authentication context
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
-            NewData = System.Text.Json.JsonSerializer.Serialize(createdProductCategory.ToReadDto())
+            NewData = JsonSerializer.Serialize(createdProductCategory.ToReadDto())
         };
         _activityLogRepository.LogActivity(log);
         return CreatedAtAction(nameof(GetProductCategoryById), new { productCategoryId = createdProductCategory.Id }, createdProductCategory.ToReadDto());
     }
 
     [HttpDelete("{productCategoryId:int}")]
+    [Authorize(Policy = AppPermissions.ProductCategoriesManage)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -114,7 +123,7 @@ public class ProductCategoriesController : ControllerBase
         {
             return BadRequest("Cannot delete a category that contains products. Reassign the products first.");
         }
-        var oldData = System.Text.Json.JsonSerializer.Serialize(existingProductCategory.ToReadDto());
+        var oldData = JsonSerializer.Serialize(existingProductCategory.ToReadDto());
         
         if (!_productCategoryRepository.SoftDelete(existingProductCategory))
             return StatusCode(500, "Failed to delete product category");
@@ -123,7 +132,7 @@ public class ProductCategoriesController : ControllerBase
             ModuleId = (int)ModuleEnum.ProductCategories,
             ComponentId = existingProductCategory.Id,
             Action = "Delete",
-            UserId = 1, // Replace with actual user ID from authentication context
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = ""

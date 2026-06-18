@@ -2,17 +2,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarehouseManagementApp.Models;
 using WarehouseManagementApp.Data;
+using System.Text.Json;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.DTOs;
 using WarehouseManagementApp.Enums;
+using Microsoft.AspNetCore.Authorization;
+using WarehouseManagementApp.Security;
 
 
 namespace WarehouseManagementApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController : ControllerBase
+    public class ProductsController : BaseApiController
     {
         private readonly IProductRepository _productRepository;
         private readonly IActivityLogRepository _activityLogRepository;
@@ -23,6 +26,7 @@ namespace WarehouseManagementApp.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = AppPermissions.ProductsRead)]
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProductReadDto>))]
 
         public IActionResult GetProducts()
@@ -34,6 +38,7 @@ namespace WarehouseManagementApp.Controllers
         }
 
         [HttpGet("{productId:int}")]
+        [Authorize(Policy = AppPermissions.ProductsRead)]
         [ProducesResponseType(200, Type = typeof(ProductReadDto))]
         [ProducesResponseType(404)]
         public IActionResult GetProductById(int productId)
@@ -44,6 +49,7 @@ namespace WarehouseManagementApp.Controllers
             return Ok(product.ToReadDto());
         }
         [HttpGet("qr/{qrCode}")]
+        [Authorize(Policy = AppPermissions.ProductsRead)]
         [ProducesResponseType(200, Type = typeof(ProductReadDto))]
         [ProducesResponseType(404)]
         public IActionResult GetProductByQrCode(string qrCode)
@@ -54,6 +60,7 @@ namespace WarehouseManagementApp.Controllers
             return Ok(product.ToReadDto());
         }
         [HttpGet("category/{categoryId:int}")]
+        [Authorize(Policy = AppPermissions.ProductsRead)]
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProductReadDto>))]
         public IActionResult GetProductsByCategoryId(int categoryId)
         {
@@ -63,6 +70,7 @@ namespace WarehouseManagementApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = AppPermissions.ProductsManage)]
         [ProducesResponseType(201, Type = typeof(ProductReadDto))]
         [ProducesResponseType(400)]
         public IActionResult CreateProduct([FromBody] ProductCreateDto productDto)
@@ -79,14 +87,15 @@ namespace WarehouseManagementApp.Controllers
                 ModuleId = (int)ModuleEnum.Products,
                 ComponentId = createdProduct.Id,
                 Action = "Create",
-                UserId = 1, // Replace with actual user ID from authentication context
+                UserId = CurrentUserID,
                 CreatedAt = DateTime.UtcNow,
-                NewData = System.Text.Json.JsonSerializer.Serialize(createdProduct.ToReadDto())
+                NewData = JsonSerializer.Serialize(createdProduct.ToReadDto())
             };
             _activityLogRepository.LogActivity(log);
             return CreatedAtAction(nameof(GetProductById), new { productId = createdProduct.Id }, createdProduct.ToReadDto());
         }
         [HttpPut("{productId:int}")]
+        [Authorize(Policy = AppPermissions.ProductsManage)]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
@@ -100,7 +109,7 @@ namespace WarehouseManagementApp.Controllers
                 return NotFound($"Product with id {productId} does not exist.");
             if (_productRepository.NameCategoryExists(productDto.Name, productDto.CategoryId, productId))
                 return BadRequest($"Another product with name {productDto.Name} already exists in category {productDto.CategoryId}.");
-            var oldProductData = System.Text.Json.JsonSerializer.Serialize(existingProduct.ToReadDto());
+            var oldProductData = JsonSerializer.Serialize(existingProduct.ToReadDto());
             ProductMapper.UpdateFromDto(existingProduct, productDto);
             if (!_productRepository.Update(existingProduct))
                 return StatusCode(500, "Failed to update product.");
@@ -109,15 +118,16 @@ namespace WarehouseManagementApp.Controllers
                 ModuleId = (int)ModuleEnum.Products,
                 ComponentId = existingProduct.Id,
                 Action = "Update",
-                UserId = 1, // Replace with actual user ID from authentication context
+                UserId = CurrentUserID,
                 CreatedAt = DateTime.UtcNow,
                 OldData = oldProductData,
-                NewData = System.Text.Json.JsonSerializer.Serialize(existingProduct.ToReadDto())
+                NewData = JsonSerializer.Serialize(existingProduct.ToReadDto())
             };
             _activityLogRepository.LogActivity(log);
             return NoContent();
         }
         [HttpDelete("{productId:int}")]
+        [Authorize(Policy = AppPermissions.ProductsManage)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
 
@@ -126,7 +136,7 @@ namespace WarehouseManagementApp.Controllers
             var product = _productRepository.GetById(productId);
             if (product == null)
                 return NotFound($"Product with id {productId} does not exist.");
-            var oldProductData = System.Text.Json.JsonSerializer.Serialize(product.ToReadDto());
+            var oldProductData = JsonSerializer.Serialize(product.ToReadDto());
             if (!_productRepository.SoftDelete(product))
                 return StatusCode(500, "Failed to delete product.");
             ActivityLog log = new ActivityLog()
@@ -134,7 +144,7 @@ namespace WarehouseManagementApp.Controllers
                 ModuleId = (int)ModuleEnum.Products,
                 ComponentId = productId,
                 Action = "Delete",
-                UserId = 1, // Replace with actual user ID from authentication context
+                UserId = CurrentUserID,
                 CreatedAt = DateTime.UtcNow,
                 OldData = oldProductData,
                 NewData = ""

@@ -38,7 +38,6 @@ namespace WarehouseManagementApp.DTOs
     public class OrderCreateDto
     {
         [Required]
-        public int CreatorId { get; set; }
         public ICollection<OrderProductCreateDto> OrderProducts { get; set; } = new List<OrderProductCreateDto>();
     }
 }

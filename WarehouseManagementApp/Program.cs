@@ -7,6 +7,7 @@ using WarehouseManagementApp.Data;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Repository;
 using WarehouseManagementApp.Services;
+using WarehouseManagementApp.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,12 +51,21 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Read", policy =>
-        policy.RequireClaim("Permission", "Read_All"));
-    options.AddPolicy("Write", policy =>
-        policy.RequireClaim("Permission", "Write_All"));
-    options.AddPolicy("Delete", policy =>
-        policy.RequireClaim("Permission", "Delete_Records"));
+    foreach (var permission in AppPermissions.All)
+    {
+        options.AddPolicy(permission, policy =>
+        {
+            policy.RequireAssertion(context =>
+                context.User.HasClaim("Permission", permission) ||
+                context.User.HasClaim("Permission", "Access:All"));
+        });
+    }
+    //options.AddPolicy("Read", policy =>
+    //    policy.RequireClaim("Permission", "Read_All"));
+    //options.AddPolicy("Write", policy =>
+    //    policy.RequireClaim("Permission", "Write_All"));
+    //options.AddPolicy("Delete", policy =>
+    //    policy.RequireClaim("Permission", "Delete_Records"));
 });
 
 builder.Services.AddControllers();

@@ -2,14 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarehouseManagementApp.Models;
 using WarehouseManagementApp.Data;
+using System.Text.Json;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.DTOs;
 using WarehouseManagementApp.Enums;
+using WarehouseManagementApp.Controllers;
+using Microsoft.AspNetCore.Authorization;
+using WarehouseManagementApp.Security;
 
 [Route("api/[controller]")]
 [ApiController]
-public class OrdersController : ControllerBase
+public class OrdersController : BaseApiController
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IActivityLogRepository _activityLogRepository;
@@ -22,6 +26,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AppPermissions.OrdersRead)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<OrderReadDto>))]
     public IActionResult GetOrders()
     {
@@ -32,6 +37,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Policy = AppPermissions.OrdersRead)]
     [ProducesResponseType(200, Type = typeof(OrderReadDto))]
     [ProducesResponseType(404)]
     public IActionResult GetOrderById(int id)
@@ -42,6 +48,7 @@ public class OrdersController : ControllerBase
         return Ok(order.ToReadDto());
     }
     [HttpGet("creator/{id:int}")]
+    [Authorize(Policy = AppPermissions.OrdersRead)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<OrderReadDto>))]
     [ProducesResponseType(404)]
 
@@ -54,6 +61,7 @@ public class OrdersController : ControllerBase
         return Ok(ordersDto);
     }
     [HttpGet("reviewer/{id:int}")]
+    [Authorize(Policy = AppPermissions.OrdersRead)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<OrderReadDto>))]
     [ProducesResponseType(404)]
 
@@ -66,6 +74,7 @@ public class OrdersController : ControllerBase
         return Ok(ordersDto);
     }
     [HttpGet("status/{id:int}")]
+    [Authorize(Policy = AppPermissions.OrdersRead)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<OrderReadDto>))]
     [ProducesResponseType(404)]
 
@@ -79,6 +88,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = AppPermissions.OrdersProcess)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -93,7 +103,7 @@ public class OrdersController : ControllerBase
             return NotFound($"Order with id {id} does not exist");       
         if(existingOrder.StatusId != (int)OrderStatusEnum.New && existingOrder.StatusId != (int)OrderStatusEnum.Processing)
             return BadRequest($"Orders with status other than New or Processing cannot be modified");
-        var oldData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
+        var oldData = JsonSerializer.Serialize(existingOrder.ToReadDto());
         var productIds = orderDto.OrderProducts.Select(op => op.ProductId).Distinct().ToList();
         var productsFromDb = _productRepository.GetAllProductsWithIds(productIds).ToList();
         existingOrder.OrderProducts.Clear();
@@ -118,7 +128,7 @@ public class OrdersController : ControllerBase
         }
 
         existingOrder.CostAmt = totalOrderCost;
-        var newData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
+        var newData = JsonSerializer.Serialize(existingOrder.ToReadDto());
         if (!_orderRepository.Update(existingOrder)) 
             return BadRequest("Failed to update order");
 
@@ -127,7 +137,7 @@ public class OrdersController : ControllerBase
             ModuleId = (int)ModuleEnum.Orders,
             ComponentId = existingOrder.Id,
             Action = "Update",
-            UserId = 1, // Add user that deleted the order
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = newData
@@ -137,6 +147,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id:int}/status/{statusId:int}")]
+    [Authorize(Policy = AppPermissions.OrdersProcess)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -146,7 +157,7 @@ public class OrdersController : ControllerBase
         var existingOrder = _orderRepository.GetOrderWithDetails(id);
         if (existingOrder == null)
             return NotFound($"Order with id {id} does not exist");
-        var oldData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
+        var oldData = JsonSerializer.Serialize(existingOrder.ToReadDto());
         var currentStatus = (OrderStatusEnum)existingOrder.StatusId;
         var targetStatus = (OrderStatusEnum)statusId;
         bool isTransitionAllowed = (currentStatus, targetStatus) switch
@@ -162,7 +173,7 @@ public class OrdersController : ControllerBase
         if (!isTransitionAllowed)
             return BadRequest($"Status {currentStatus} cannot be changed to {targetStatus}");
         if (targetStatus == (OrderStatusEnum.Processing))
-            existingOrder.ReviewerId = 1; //TBD - current user
+            existingOrder.ReviewerId = CurrentUserID;
         if (targetStatus == (OrderStatusEnum.Approved))
         {
             var orderProducts = existingOrder.OrderProducts;
@@ -177,7 +188,7 @@ public class OrdersController : ControllerBase
             }
         }
         existingOrder.StatusId = statusId;
-        var newData = System.Text.Json.JsonSerializer.Serialize(existingOrder.ToReadDto());
+        var newData = JsonSerializer.Serialize(existingOrder.ToReadDto());
         if(!_orderRepository.Update(existingOrder))
             return BadRequest("Failed to update status");
 
@@ -186,7 +197,7 @@ public class OrdersController : ControllerBase
             ModuleId = (int)ModuleEnum.Orders,
             ComponentId = id,
             Action = "Update status",
-            UserId = 1, //TBD
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = newData,
@@ -196,6 +207,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AppPermissions.OrdersCreate)]
     [ProducesResponseType(201, Type = typeof(OrderReadDto))]
     [ProducesResponseType(400)]
     public IActionResult CreateOrder([FromBody] OrderCreateDto orderDto)
@@ -209,6 +221,7 @@ public class OrdersController : ControllerBase
 
         var products = _productRepository.GetAllProductsWithIds(productIds).ToList();
         var createdOrder = OrderMapper.CreateDtoToOrder(orderDto);
+        createdOrder.CreatorId = CurrentUserID;
         foreach (var product in createdOrder.OrderProducts)
         {
             var existingProduct = products.FirstOrDefault(p => p.Id == product.ProductId);
@@ -237,16 +250,17 @@ public class OrdersController : ControllerBase
             ModuleId = (int)ModuleEnum.Orders,
             ComponentId = createdOrder.Id,
             Action = "Create",
-            UserId = createdOrder.CreatorId,
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = "",
-            NewData = System.Text.Json.JsonSerializer.Serialize(orderReadDto)
+            NewData = JsonSerializer.Serialize(orderReadDto)
         };
         _activityLogRepository.Create(log);
         return CreatedAtAction(nameof(GetOrderById), new { id = createdOrder.Id }, orderReadDto);
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = AppPermissions.OrdersProcess)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public IActionResult DeleteOrder(int id)
@@ -257,7 +271,7 @@ public class OrdersController : ControllerBase
         
         if (order.StatusId != (int)OrderStatusEnum.New)
             return BadRequest("Only orders with status new can be deleted");
-        var oldProductData = System.Text.Json.JsonSerializer.Serialize(order.ToReadDto());
+        var oldProductData = JsonSerializer.Serialize(order.ToReadDto());
 
         if (!_orderRepository.SoftDelete(order))
             return BadRequest("Failed to delete order");
@@ -267,7 +281,7 @@ public class OrdersController : ControllerBase
             ModuleId = (int)ModuleEnum.Orders,
             ComponentId = order.Id,
             Action = "Delete",
-            UserId = 1, // Add user that deleted the order
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldProductData,
             NewData = ""

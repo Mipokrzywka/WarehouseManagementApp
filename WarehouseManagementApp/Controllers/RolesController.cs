@@ -1,16 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security;
+using System.Text.Json;
+using WarehouseManagementApp.Controllers;
 using WarehouseManagementApp.Data;
 using WarehouseManagementApp.DTOs;
 using WarehouseManagementApp.Enums;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.Models;
+using WarehouseManagementApp.Security;
 
 [Route("api/[controller]")]
 [ApiController]
-public class RolesController : ControllerBase
+public class RolesController : BaseApiController
 {
     private readonly IRoleRepository _roleRepository;
     private readonly IActivityLogRepository _activityLogRepository;
@@ -23,6 +27,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AppPermissions.RolesRead)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<RoleReadDto>))]
     public IActionResult GetRoles()
     {
@@ -34,6 +39,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Policy = AppPermissions.RolesRead)]
     [ProducesResponseType(200, Type = typeof(RoleReadDto))]
     [ProducesResponseType(404)]
     public IActionResult GetRoleById(int id)
@@ -45,6 +51,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = AppPermissions.RolesManage)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -67,7 +74,7 @@ public class RolesController : ControllerBase
         var invalidPermissions = dto.PermissionIds.Except(existingPermissions).ToList();
         if (invalidPermissions.Any())
             return BadRequest($"Permissions with ids {string.Join(", ", invalidPermissions)} do not exist");
-        var oldData = System.Text.Json.JsonSerializer.Serialize(existingRole.ToReadDto());
+        var oldData = JsonSerializer.Serialize(existingRole.ToReadDto());
         existingRole.Name = dto.Name;
         existingRole.UpdatedAt = DateTime.UtcNow;
         existingRole.RolePermissions.Clear();
@@ -84,13 +91,13 @@ public class RolesController : ControllerBase
         if(!_roleRepository.Update(existingRole))
             return BadRequest("Failed to update role");
 
-        var newData = System.Text.Json.JsonSerializer.Serialize(existingRole.ToReadDto());
+        var newData = JsonSerializer.Serialize(existingRole.ToReadDto());
         ActivityLog log = new ActivityLog()
         {
             ModuleId = (int)ModuleEnum.Roles,
             ComponentId = existingRole.Id,
             Action = "Update",
-            UserId = 1, // Add user that created the role
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = newData,
@@ -100,6 +107,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AppPermissions.RolesManage)]
     [ProducesResponseType(201, Type = typeof(RoleReadDto))]
     [ProducesResponseType(400)]
     public IActionResult CreateRole([FromBody] RoleCreateDto dto)
@@ -129,13 +137,13 @@ public class RolesController : ControllerBase
         if (fetchedRole == null)
             return NotFound($"Role with id {createdRole.Id} does not exist after creation");
         var roleReadDto = fetchedRole.ToReadDto();
-        var newData = System.Text.Json.JsonSerializer.Serialize(roleReadDto);
+        var newData = JsonSerializer.Serialize(roleReadDto);
         ActivityLog log = new ActivityLog()
         {
             ModuleId = (int)ModuleEnum.Roles,
             ComponentId = createdRole.Id,
             Action = "Create",
-            UserId = 1, // Add user that created the role
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = "",
             NewData = newData,
@@ -145,6 +153,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = AppPermissions.RolesManage)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public IActionResult DeleteRole(int id)
@@ -154,7 +163,7 @@ public class RolesController : ControllerBase
             return NotFound($"Role with id {id} does not exist");
         if (_roleRepository.HasUsers(role.Id)) 
             return BadRequest("Cannot delete role with users");
-        var oldData = System.Text.Json.JsonSerializer.Serialize(role.ToReadDto());
+        var oldData = JsonSerializer.Serialize(role.ToReadDto());
         if (!_roleRepository.SoftDelete(role))
             return BadRequest("Failed to delete role");
         ActivityLog log = new ActivityLog()
@@ -162,7 +171,7 @@ public class RolesController : ControllerBase
             ModuleId = (int)ModuleEnum.Roles,
             ComponentId = role.Id,
             Action = "Delete",
-            UserId = 1, // Add user that created the role
+            UserId = CurrentUserID,
             CreatedAt = DateTime.UtcNow,
             OldData = oldData,
             NewData = ""

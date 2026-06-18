@@ -46,12 +46,14 @@ public class DictionariesController : ControllerBase
     {
         var permissions = _context.Permissions
             .AsNoTracking()
+            .Where(p => !p.Name.Equals("Access:All"))
             .Select(p => new PermissionReadDto
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description
-            }).ToList();
+            })            
+            .ToList();
         return Ok(permissions);
     }
     [HttpGet("ActivityLogs(Test)")]

@@ -36,11 +36,23 @@ namespace WarehouseManagementApp.Data
             modelBuilder.Entity<ProductCategory>().HasData(catElectronics, catTools, catChemicals);
 
             // 2. SEED: Role i Uprawnienia
-            var permRead = new Permission { Id = 1, Name = "Read_All", Description = "Odczyt wszystkich danych" };
-            var permWrite = new Permission { Id = 2, Name = "Write_All", Description = "Zapis i edycja danych" };
-            var permDelete = new Permission { Id = 3, Name = "Delete_Records", Description = "Usuwanie rekordów z systemu" };
-
-            modelBuilder.Entity<Permission>().HasData(permRead, permWrite, permDelete);
+            var permAccessAll = new Permission { Id = 1, Name = "Access:All", Description = "Access to all application functionalities and data" };
+            var permProductsRead = new Permission { Id = 2, Name = "Products:Read", Description = "Access to view all products" };
+            var permProductsManage = new Permission { Id = 3, Name = "Products:Manage", Description = "Access to add, update and delete products" };
+            var permProductCategoriesRead = new Permission { Id = 4, Name = "ProductCategories:Read", Description = "Access to view all product categories" };
+            var permProductCategoriesManage = new Permission { Id = 5, Name = "ProductCategories:Manage", Description = "Access to add, update and delete product categories" };
+            var permOrdersRead = new Permission { Id = 6, Name = "Orders:Read", Description = "Access to view all orders" };
+            var permOrdersCreate= new Permission { Id = 7, Name = "Orders:Create", Description = "Access to add new order requests" };
+            var permOrdersProcess = new Permission { Id = 8, Name = "Orders:Process", Description = "Access to process orders" };
+            var permUsersRead = new Permission { Id = 9, Name = "Users:Read", Description = "Access to view all users" };
+            var permUsersManage = new Permission { Id = 10, Name = "Users:Manage", Description = "Access to add, update and delete users" };
+            var permRolesRead = new Permission { Id = 11, Name = "Roles:Read", Description = "Access to view all roles" };
+            var permRolesManage = new Permission { Id = 12, Name = "Roles:Manage", Description = "Access to add, update and delete Roles" };
+            modelBuilder.Entity<Permission>().HasData(
+                permAccessAll, permProductsRead, permProductsManage, permProductCategoriesRead,
+                permProductCategoriesManage, permOrdersRead, permOrdersCreate, permOrdersProcess,
+                permUsersRead, permUsersManage, permRolesRead, permRolesManage
+                );
 
             var roleAdmin = new Role { Id = 1, Name = "Administrator" };
             var roleManager = new Role { Id = 2, Name = "Manager" };
