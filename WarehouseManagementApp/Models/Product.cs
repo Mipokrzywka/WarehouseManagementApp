@@ -20,6 +20,7 @@ namespace WarehouseManagementApp.Models
         public decimal CostAmt {  get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ForecastDepletionDate {  get; set; }
+        public DateTime? ForecastUpdatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public ICollection<ProductChange> ProductChanges { get; set; } = new List<ProductChange>();

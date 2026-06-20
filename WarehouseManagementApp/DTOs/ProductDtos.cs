@@ -12,7 +12,8 @@ namespace WarehouseManagementApp.DTOs
         public decimal CostAmt { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
-        public DateTime ForecastDepletionDate { get; set; }
+        public DateTime? ForecastDepletionDate { get; set; }
+        public DateTime? ForecastUpdatedAt { get; set; }
 }
     public class ProductUpdateDto
     {

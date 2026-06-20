@@ -78,7 +78,7 @@ public class ProductCategoriesController : BaseApiController
             OldData = originalData,
             NewData = JsonSerializer.Serialize(existingProductCategory.ToReadDto())
         };
-        _activityLogRepository.LogActivity(log);
+        _activityLogRepository.Create(log);
         return NoContent();
     }
 
@@ -105,7 +105,7 @@ public class ProductCategoriesController : BaseApiController
             CreatedAt = DateTime.UtcNow,
             NewData = JsonSerializer.Serialize(createdProductCategory.ToReadDto())
         };
-        _activityLogRepository.LogActivity(log);
+        _activityLogRepository.Create(log);
         return CreatedAtAction(nameof(GetProductCategoryById), new { productCategoryId = createdProductCategory.Id }, createdProductCategory.ToReadDto());
     }
 
@@ -137,7 +137,7 @@ public class ProductCategoriesController : BaseApiController
             OldData = oldData,
             NewData = ""
         };
-        _activityLogRepository.LogActivity(log);
+        _activityLogRepository.Create(log);
         return NoContent();
     }
 }

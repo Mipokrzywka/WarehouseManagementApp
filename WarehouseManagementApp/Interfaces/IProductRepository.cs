@@ -11,5 +11,7 @@ namespace WarehouseManagementApp.Interfaces
         public bool NameCategoryExists(string name, int categoryId, int productId = 0);
         bool SoftDelete(Product product);
         IEnumerable<Product> GetAllProductsWithIds(IEnumerable<int> ids);
+        public DateTime? CalculateForecastDate(int produdctId, int daysHistory);
+        public bool UpdateForecastDate(int productId, int daysHistory);
     }
 }

@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 using WarehouseManagementApp.Data;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Models;
+using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 
 namespace WarehouseManagementApp.Repository
 {
@@ -58,6 +60,74 @@ namespace WarehouseManagementApp.Repository
             return _dbSet
                          .Where(p => ids.Contains(p.Id))
                          .ToList();
+        }
+
+        public DateTime? CalculateForecastDate(int productId, int daysHistory)
+        {
+            var product = GetById(productId);
+            if (product == null)    
+                return null;
+
+            var startDate = DateTime.UtcNow.AddDays(-daysHistory);
+
+            var dailySales = _context.OrderProducts
+                .Where(op => op.ProductId == product.Id &&
+                             op.CreatedAt >= startDate &&
+                             (op.Order.StatusId == (int) OrderStatusEnum.Completed ||
+                             op.Order.StatusId == (int) OrderStatusEnum.Approved))
+                .GroupBy(op => op.Order.CreatedAt.Date)
+                .Select(g => new {Date = g.Key, Quantity = g.Sum(op => op.Quantity)})
+                .ToList();
+
+            var allDaysSales = Enumerable.Range(0, daysHistory)
+                .Select(i => startDate.AddDays(i).Date)
+                .Select(d => (decimal)(dailySales.FirstOrDefault(s => s.Date == d)?.Quantity ?? 0))
+                .ToList();
+
+            if (!allDaysSales.Any() || allDaysSales.Sum() == 0) return null;
+
+            decimal avg = allDaysSales.Average();
+            double squareSum = allDaysSales.Sum(val => Math.Pow((double)(val - avg), 2));
+            decimal stdDev = (decimal)Math.Sqrt(squareSum / daysHistory);
+
+            List<decimal> devSales;
+            if(allDaysSales.Sum() < 10)
+            {
+                devSales = allDaysSales;
+            }
+            else 
+            {
+                devSales = allDaysSales
+                .Select(val => (val > avg + (2.5m * stdDev)) ? avg : val)
+                .ToList();
+            }
+
+            decimal alpha = 0.2m;
+            decimal weightedDailySales = devSales.First();
+
+            for(int i = 1; i < devSales.Count; ++i)
+            {
+                weightedDailySales = 2;
+            }
+
+            Debug.WriteLine($"WeightedDailySales: {weightedDailySales}");
+
+            if (weightedDailySales > 0)
+            {
+                int daysRemaining = (int)Math.Floor(product.Quantity / weightedDailySales);
+                return DateTime.UtcNow.AddDays(daysRemaining).Date;
+            }
+            return null;
+        }
+
+        public bool UpdateForecastDate(int productId, int daysHistory)
+        {
+            var product = GetById(productId);
+            if(product == null) return false;
+
+            product.ForecastDepletionDate = CalculateForecastDate(productId, daysHistory);
+            product.ForecastUpdatedAt = DateTime.UtcNow;
+            return Save();
         }
     }
 }

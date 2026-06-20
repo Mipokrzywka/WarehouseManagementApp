@@ -185,6 +185,10 @@ public class OrdersController : BaseApiController
                 if (product.Quantity - productDto.Quantity < 0)
                     return BadRequest($"Not enough stock of product {product.Name}. Current stock: {product.Quantity}, requested: {productDto.Quantity}");
                 product.Quantity -= productDto.Quantity;
+                if (!_productRepository.Update(product))
+                    return BadRequest($"Failed to update stock for product {product.Name}");
+                if(!_productRepository.UpdateForecastDate(product.Id, 30))
+                    return StatusCode(500, $"Failed to update forecast date for product {product.Name}");
             }
         }
         existingOrder.StatusId = statusId;

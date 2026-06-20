@@ -91,7 +91,7 @@ namespace WarehouseManagementApp.Controllers
                 CreatedAt = DateTime.UtcNow,
                 NewData = JsonSerializer.Serialize(createdProduct.ToReadDto())
             };
-            _activityLogRepository.LogActivity(log);
+            _activityLogRepository.Create(log);
             return CreatedAtAction(nameof(GetProductById), new { productId = createdProduct.Id }, createdProduct.ToReadDto());
         }
         [HttpPut("{productId:int}")]
@@ -111,8 +111,10 @@ namespace WarehouseManagementApp.Controllers
                 return BadRequest($"Another product with name {productDto.Name} already exists in category {productDto.CategoryId}.");
             var oldProductData = JsonSerializer.Serialize(existingProduct.ToReadDto());
             ProductMapper.UpdateFromDto(existingProduct, productDto);
+            
             if (!_productRepository.Update(existingProduct))
                 return StatusCode(500, "Failed to update product.");
+
             ActivityLog log = new ActivityLog()
             {
                 ModuleId = (int)ModuleEnum.Products,
@@ -123,9 +125,42 @@ namespace WarehouseManagementApp.Controllers
                 OldData = oldProductData,
                 NewData = JsonSerializer.Serialize(existingProduct.ToReadDto())
             };
-            _activityLogRepository.LogActivity(log);
+            _activityLogRepository.Create(log);
             return NoContent();
         }
+
+        [HttpPut("{productId:int}/UpdateForecast")]
+        [Authorize(Policy = AppPermissions.ProductsManage)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdateProductForecast(int productId, [FromQuery] int days = 30)
+        {
+            if (days <= 0) days = 30;
+
+            if (!_productRepository.Exists(productId))
+                return NotFound($"Product with id {productId} does not exist");
+
+            if (!_productRepository.UpdateForecastDate(productId, days))
+                return BadRequest("Failed to update forecast date");
+
+
+            ActivityLog log = new ActivityLog()
+            {
+                ModuleId = (int)ModuleEnum.Products,
+                ComponentId = productId,
+                Action = "Update forecast",
+                UserId = CurrentUserID,
+                CreatedAt = DateTime.UtcNow,
+                OldData = "",
+                NewData = ""
+            };
+
+            _activityLogRepository.Create(log);
+            return NoContent();
+        }
+
+
         [HttpDelete("{productId:int}")]
         [Authorize(Policy = AppPermissions.ProductsManage)]
         [ProducesResponseType(204)]
@@ -149,7 +184,7 @@ namespace WarehouseManagementApp.Controllers
                 OldData = oldProductData,
                 NewData = ""
             };
-            _activityLogRepository.LogActivity(log);
+            _activityLogRepository.Create(log);
             return NoContent();
         }
     }

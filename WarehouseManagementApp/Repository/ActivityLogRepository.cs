@@ -17,10 +17,5 @@ namespace WarehouseManagementApp.Repository
                   .ToList();
         }
 
-        public void LogActivity(ActivityLog log)
-        {
-            _dbSet.Add(log);
-            _context.SaveChanges();
-        }
     }
 }
