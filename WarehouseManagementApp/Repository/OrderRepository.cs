@@ -19,7 +19,10 @@ namespace WarehouseManagementApp.Repository
                          .Include(o => o.Status)
                          .Include(o => o.OrderProducts)
                              .ThenInclude(op => op.Product)
-                             .ThenInclude(p => p.Category);
+                             .ThenInclude(p => p.Category)
+                         .Include(o => o.OrderProducts)
+                             .ThenInclude(op => op.Product)
+                             .ThenInclude(p => p.Brand);
 
             if (getBy == "creator")
             {

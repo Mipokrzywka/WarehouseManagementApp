@@ -13,6 +13,8 @@ namespace WarehouseManagementApp.Mappers
                 ProductName = orderProduct.Product?.Name ?? "",
                 CategoryId = orderProduct.Product?.CategoryId ?? 0,
                 CategoryName = orderProduct.Product?.Category?.Name ?? "",
+                BrandId = orderProduct.Product?.BrandId ?? 0,
+                BrandName = orderProduct.Product?.Brand?.Name ?? "",
                 Quantity = orderProduct.Quantity,
                 CostAmt = orderProduct?.CostAmt ?? 0
             };
