@@ -34,6 +34,21 @@ namespace WarehouseManagementApp.Data
             var catChemicals = new ProductCategory { Id = 3, Name = "Chemia magazynowa" };
 
             modelBuilder.Entity<ProductCategory>().HasData(catElectronics, catTools, catChemicals);
+            var brands = new List<Brand>()
+            {
+                new Brand { Id = 1, Name = "Lenovo" },
+                new Brand { Id = 2, Name = "Samsung" },
+                new Brand { Id = 3, Name = "Apple" },
+                new Brand { Id = 4, Name = "Dell" },
+                new Brand { Id = 5, Name = "HP" },
+                new Brand { Id = 6, Name = "Sony" },
+                new Brand { Id = 7, Name = "Xiaomi" },
+                new Brand { Id = 8, Name = "Logitech" },
+                new Brand { Id = 9, Name = "Asus" },
+                new Brand { Id = 10, Name = "Microsoft" }
+            };
+
+            modelBuilder.Entity<Brand>().HasData(brands);
 
             // 2. SEED: Role i Uprawnienia
             var permAccessAll = new Permission { Id = 1, Name = "Access:All", Description = "Access to all application functionalities and data" };

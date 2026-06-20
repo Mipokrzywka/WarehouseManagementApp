@@ -10,6 +10,9 @@ namespace WarehouseManagementApp.Models
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public ProductCategory? Category { get; set; }
+        public int? BrandId { get; set; }
+        [ForeignKey("BrandId")]
+        public Brand? Brand { get; set; }
         [Required]
         public string QrCode { get; set; } = string.Empty;
         [Required]

@@ -17,6 +17,7 @@ namespace WarehouseManagementApp.Data
         public DbSet<OrderStatus> OrderStatuses { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Brand> Brands { get; set; }
         public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<ProductChange> ProductChanges { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -58,6 +59,12 @@ namespace WarehouseManagementApp.Data
                 .HasForeignKey(p => p.CategoryId);
 
             modelBuilder.Entity<Product>()
+                .HasOne(p => p.Brand)
+                .WithMany(b => b.Products)
+                .HasForeignKey(p => p.BrandId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Product>()
                 .HasIndex(p => new { p.Name, p.CategoryId })
                 .IsUnique()
                 .HasFilter("[DeletedAt] IS NULL");
@@ -79,6 +86,10 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<Module>()
                 .HasIndex(m => m.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Brand>()
+                .HasIndex(r => r.Name)
                 .IsUnique();
 
             modelBuilder.Entity<OrderStatus>()
