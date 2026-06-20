@@ -16,6 +16,8 @@ namespace WarehouseManagementApp.Mappers
                 CostAmt = product.CostAmt,
                 CategoryId = product.CategoryId,
                 CategoryName = product.Category != null ? product.Category.Name : string.Empty,
+                BrandId = (int)product.BrandId,
+                BrandName = product.Brand != null ? product.Brand.Name : string.Empty,
                 ForecastDepletionDate = product.ForecastDepletionDate ?? DateTime.MinValue,
                 ForecastUpdatedAt = product.ForecastUpdatedAt ?? DateTime.MinValue,
             };
@@ -31,6 +33,7 @@ namespace WarehouseManagementApp.Mappers
                 Quantity = dto.Quantity,
                 CostAmt = dto.CostAmt,
                 CategoryId = dto.CategoryId,
+                BrandId = dto.BrandId,
                 QrCode = qr,
                 CreatedAt = createdAt,
                 UpdatedAt = createdAt,
@@ -45,8 +48,8 @@ namespace WarehouseManagementApp.Mappers
             product.Quantity = dto.Quantity;
             product.CostAmt = dto.CostAmt;
             product.CategoryId = dto.CategoryId;
-            product.UpdatedAt = DateTime.UtcNow;
-            //ForecastDepletionDate = Forecast();           
+            product.BrandId = dto.BrandId;
+            product.UpdatedAt = DateTime.UtcNow;     
         }
 
     }

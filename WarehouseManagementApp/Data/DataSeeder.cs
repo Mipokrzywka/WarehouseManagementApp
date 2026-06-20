@@ -6,7 +6,7 @@ namespace WarehouseManagementApp.Data
     public static class DataSeeder
     {
         public static void Seed(ModelBuilder modelBuilder)
-        {          
+        {
             var statusNew = new OrderStatus { Id = 1, Name = "New" };
             var statusProcessing = new OrderStatus { Id = 2, Name = "Processing" };
             var statusApproved = new OrderStatus { Id = 3, Name = "Approved" };
@@ -15,13 +15,13 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<OrderStatus>().HasData(statusNew, statusProcessing, statusApproved, statusRejected, statusCompleted);
 
-            var taskTodo = new WarehouseManagementApp.Models.TaskStatus { Id = 1, Name = "Do zrobienia" };
-            var taskInProg = new WarehouseManagementApp.Models.TaskStatus { Id = 2, Name = "W toku" };
-            var taskDone = new WarehouseManagementApp.Models.TaskStatus { Id = 3, Name = "Zakończone" };
+            var taskTodo = new WarehouseManagementApp.Models.TaskStatus { Id = 1, Name = "To do" };
+            var taskInProg = new WarehouseManagementApp.Models.TaskStatus { Id = 2, Name = "In progress" };
+            var taskDone = new WarehouseManagementApp.Models.TaskStatus { Id = 3, Name = "Finished" };
 
             modelBuilder.Entity<WarehouseManagementApp.Models.TaskStatus>().HasData(taskTodo, taskInProg, taskDone);
 
-            var moduleProducts= new Module { Id = 1, Name = "Products" };
+            var moduleProducts = new Module { Id = 1, Name = "Products" };
             var moduleProductCategories = new Module { Id = 2, Name = "Product categories" };
             var moduleOrders = new Module { Id = 3, Name = "Orders" };
             var moduleRoles = new Module { Id = 4, Name = "Roles" };
@@ -29,11 +29,12 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<Module>().HasData(moduleProducts, moduleProductCategories, moduleOrders, moduleRoles, moduleUsers);
 
-            var catElectronics = new ProductCategory { Id = 1, Name = "Elektronika" };
-            var catTools = new ProductCategory { Id = 2, Name = "Narzędzia" };
-            var catChemicals = new ProductCategory { Id = 3, Name = "Chemia magazynowa" };
+            var catElectronics = new ProductCategory { Id = 1, Name = "Electronics" };
+            var catTools = new ProductCategory { Id = 2, Name = "Tools" };
+            var catChemicals = new ProductCategory { Id = 3, Name = "AGD" };
 
             modelBuilder.Entity<ProductCategory>().HasData(catElectronics, catTools, catChemicals);
+
             var brands = new List<Brand>()
             {
                 new Brand { Id = 1, Name = "Lenovo" },
@@ -57,7 +58,7 @@ namespace WarehouseManagementApp.Data
             var permProductCategoriesRead = new Permission { Id = 4, Name = "ProductCategories:Read", Description = "Access to view all product categories" };
             var permProductCategoriesManage = new Permission { Id = 5, Name = "ProductCategories:Manage", Description = "Access to add, update and delete product categories" };
             var permOrdersRead = new Permission { Id = 6, Name = "Orders:Read", Description = "Access to view all orders" };
-            var permOrdersCreate= new Permission { Id = 7, Name = "Orders:Create", Description = "Access to add new order requests" };
+            var permOrdersCreate = new Permission { Id = 7, Name = "Orders:Create", Description = "Access to add new order requests" };
             var permOrdersProcess = new Permission { Id = 8, Name = "Orders:Process", Description = "Access to process orders" };
             var permUsersRead = new Permission { Id = 9, Name = "Users:Read", Description = "Access to view all users" };
             var permUsersManage = new Permission { Id = 10, Name = "Users:Manage", Description = "Access to add, update and delete users" };
@@ -71,19 +72,9 @@ namespace WarehouseManagementApp.Data
 
             var roleAdmin = new Role { Id = 1, Name = "Administrator" };
             var roleManager = new Role { Id = 2, Name = "Manager" };
-            var roleWorker = new Role { Id = 3, Name = "Pracownik" };
+            var roleWorker = new Role { Id = 3, Name = "Worker" };
 
             modelBuilder.Entity<Role>().HasData(roleAdmin, roleManager, roleWorker);
-
-            // Tabela łącznikowa: Role <-> Uprawnienia (Wiele-do-Wielu)
-            //modelBuilder.Entity<RolePermission>().HasData(
-            //    new RolePermission { RoleId = 1, PermissionId = 1 },
-            //    new RolePermission { RoleId = 1, PermissionId = 2 },
-            //    new RolePermission { RoleId = 1, PermissionId = 3 },
-            //    new RolePermission { RoleId = 2, PermissionId = 1 },
-            //    new RolePermission { RoleId = 2, PermissionId = 2 },
-            //    new RolePermission { RoleId = 3, PermissionId = 1 }
-            //);
 
             // 3. SEED: Użytkownicy i ich role
             var userAdmin = new User
@@ -105,15 +96,9 @@ namespace WarehouseManagementApp.Data
 
             modelBuilder.Entity<User>().HasData(userAdmin, userWorker);
 
-            // Tabela łącznikowa: Użytkownicy <-> Role
-            //modelBuilder.Entity<UserRole>().HasData(
-            //    new UserRole { UserId = 1, RoleId = 1 },
-            //    new UserRole { UserId = 2, RoleId = 3 }
-            //);
-
             // 4. SEED: Powiadomienia dla użytkowników
-            var notifWelcome = new Notification { Id = 1, Content = "Witaj w systemie WMS! Zmień swoje hasło po pierwszym zalogowaniu." };
-            var notifInventory = new Notification { Id = 2, Content = "Przypomnienie: W piątek odbędzie się inwentaryzacja sektora A." };
+            var notifWelcome = new Notification { Id = 1, Content = "Welcome in the WMS system!" };
+            var notifInventory = new Notification { Id = 2, Content = "Test notification" };
 
             modelBuilder.Entity<Notification>().HasData(notifWelcome, notifInventory);
 
@@ -123,9 +108,9 @@ namespace WarehouseManagementApp.Data
                 new UserNotification { UserId = 2, NotificationId = 2 }
             );
 
-            // 5. SEED: Produkty i historia zmian stanów (ProductChanges)
-            var prodLaptop = new Product { Id = 1, CategoryId = 1, Name = "Laptop Dell Vostro", QrCode = "QR-LAP-001", Quantity = 15, CostAmt = 3500.00m };
-            var prodScrewdriver = new Product { Id = 2, CategoryId = 2, Name = "Wkrętarka Makita 18V", QrCode = "QR-TOO-052", Quantity = 40, CostAmt = 450.50m };
+            // 5. SEED: Produkty (🔥 TUTAJ PRZYPISUJEMY BRAND_ID!)
+            var prodLaptop = new Product { Id = 1, CategoryId = 1, BrandId = 4, Name = "Laptop Dell Vostro", QrCode = "QR-LAP-001", Quantity = 15, CostAmt = 3500.00m }; // BrandId = 4 (Dell)
+            var prodScrewdriver = new Product { Id = 2, CategoryId = 2, BrandId = 2, Name = "Wkrętarka Makita 18V", QrCode = "QR-TOO-052", Quantity = 40, CostAmt = 450.50m }; // BrandId = 2 (Tymczasowo Samsung lub dodaj Makitę)
 
             modelBuilder.Entity<Product>().HasData(prodLaptop, prodScrewdriver);
 
@@ -144,19 +129,9 @@ namespace WarehouseManagementApp.Data
                 new TaskComment { Id = 1, TaskId = 1, Content = "Kurier się spóźnia, rozładunek przesunięty na 14:00", CreatedById = 2 }
             );
 
-            // 7. SEED: Zamówienia (Orders) i produkty w zamówieniach
-            //var order1 = new Order { Id = 1, StatusId = 1, CreatorId = 2, CostAmt = 3950.50m };
-
-            //modelBuilder.Entity<Order>().HasData(order1);
-
-            //modelBuilder.Entity<OrderProduct>().HasData(
-            //    new OrderProduct {OrderId = 1, ProductId = 1, Quantity = 1, CostAmt = 3500.00m },
-            //    new OrderProduct {OrderId = 1, ProductId = 2, Quantity = 1, CostAmt = 450.50m }
-            //);
-
             // 8. SEED: Logi aktywności (ActivityLog)
             modelBuilder.Entity<ActivityLog>().HasData(
-                new ActivityLog { Id = 1, ModuleId = 1, ComponentId = 101, Action = "CREATE_PRODUCT", UserId = 1, NewData = "{'Name': 'Laptop Dell Vostro', 'Qty': 15}" }
+                new ActivityLog { Id = 1, ModuleId = 1, ComponentId = 101, Action = "create", UserId = 1, NewData = "{'Name': 'Laptop Dell Vostro', 'Qty': 15}" }
             );
         }
     }

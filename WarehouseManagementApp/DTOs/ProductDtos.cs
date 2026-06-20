@@ -12,6 +12,8 @@ namespace WarehouseManagementApp.DTOs
         public decimal CostAmt { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
+        public int BrandId { get; set; }
+        public string BrandName { get; set; } = string.Empty;
         public DateTime? ForecastDepletionDate { get; set; }
         public DateTime? ForecastUpdatedAt { get; set; }
 }
@@ -24,6 +26,8 @@ namespace WarehouseManagementApp.DTOs
         [Range(0.01, (double)decimal.MaxValue, ErrorMessage = "Cost has to be higher than 0")]
         public decimal CostAmt { get; set; }
         public int CategoryId { get; set; }
+        public int BrandId { get; set; }
+
     }
 
     public class ProductCreateDto
@@ -35,6 +39,7 @@ namespace WarehouseManagementApp.DTOs
         [Range(0.01, (double)decimal.MaxValue, ErrorMessage = "Cost has to be higher than 0")]
         public decimal CostAmt { get; set; }
         public int CategoryId { get; set; }
+        public int BrandId { get; set; }
 
     }
 

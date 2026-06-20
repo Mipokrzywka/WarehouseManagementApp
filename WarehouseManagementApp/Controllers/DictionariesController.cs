@@ -27,6 +27,19 @@ public class DictionariesController : ControllerBase
             }).ToList();
         return Ok(statuses);
     }
+    [HttpGet("Brands")]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<BrandReadDto>))]
+    public IActionResult GetBrands()
+    {
+        var brands = _context.Brands
+            .AsNoTracking()
+            .Select(b => new BrandReadDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+            }).ToList();
+        return Ok(brands);
+    }
     [HttpGet("TaskStatuses")]
     [ProducesResponseType(200, Type = typeof(IEnumerable<TaskStatusReadDto>))]
     public IActionResult GetTaskStatuses()

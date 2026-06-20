@@ -3,14 +3,29 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace WarehouseManagementApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class NewDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Brands",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Brands", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Modules",
                 columns: table => new
@@ -60,10 +75,7 @@ namespace WarehouseManagementApp.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -141,18 +153,25 @@ namespace WarehouseManagementApp.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
+                    BrandId = table.Column<int>(type: "int", nullable: true),
                     QrCode = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     CostAmt = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ForecastDepletionDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ForecastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Brands_BrandId",
+                        column: x => x.BrandId,
+                        principalTable: "Brands",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Products_ProductCategories_CategoryId",
                         column: x => x.CategoryId,
@@ -226,7 +245,7 @@ namespace WarehouseManagementApp.Migrations
                     Action = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OldData = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OldData = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NewData = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -400,9 +419,10 @@ namespace WarehouseManagementApp.Migrations
                 name: "OrderProducts",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     OrderId = table.Column<int>(type: "int", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     CostAmt = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -411,7 +431,7 @@ namespace WarehouseManagementApp.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderProducts", x => new { x.OrderId, x.ProductId });
+                    table.PrimaryKey("PK_OrderProducts", x => x.Id);
                     table.ForeignKey(
                         name: "FK_OrderProducts_Orders_OrderId",
                         column: x => x.OrderId,
@@ -426,6 +446,161 @@ namespace WarehouseManagementApp.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Brands",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Lenovo" },
+                    { 2, "Samsung" },
+                    { 3, "Apple" },
+                    { 4, "Dell" },
+                    { 5, "HP" },
+                    { 6, "Sony" },
+                    { 7, "Xiaomi" },
+                    { 8, "Logitech" },
+                    { 9, "Asus" },
+                    { 10, "Microsoft" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Modules",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Products" },
+                    { 2, "Product categories" },
+                    { 3, "Orders" },
+                    { 4, "Roles" },
+                    { 5, "Users" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Notifications",
+                columns: new[] { "Id", "Content", "CreatedAt", "DeletedAt", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, "Welcome in the WMS system!", new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7922), null, null },
+                    { 2, "Test notification", new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7923), null, null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "OrderStatuses",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "New" },
+                    { 2, "Processing" },
+                    { 3, "Approved" },
+                    { 4, "Rejected" },
+                    { 5, "Completed" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Permissions",
+                columns: new[] { "Id", "Description", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Access to all application functionalities and data", "Access:All" },
+                    { 2, "Access to view all products", "Products:Read" },
+                    { 3, "Access to add, update and delete products", "Products:Manage" },
+                    { 4, "Access to view all product categories", "ProductCategories:Read" },
+                    { 5, "Access to add, update and delete product categories", "ProductCategories:Manage" },
+                    { 6, "Access to view all orders", "Orders:Read" },
+                    { 7, "Access to add new order requests", "Orders:Create" },
+                    { 8, "Access to process orders", "Orders:Process" },
+                    { 9, "Access to view all users", "Users:Read" },
+                    { 10, "Access to add, update and delete users", "Users:Manage" },
+                    { 11, "Access to view all roles", "Roles:Read" },
+                    { 12, "Access to add, update and delete Roles", "Roles:Manage" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ProductCategories",
+                columns: new[] { "Id", "CreatedAt", "DeletedAt", "Name", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7740), null, "Electronics", null },
+                    { 2, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7745), null, "Tools", null },
+                    { 3, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7746), null, "AGD", null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "CreatedAt", "DeletedAt", "Name", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7861), null, "Administrator", null },
+                    { 2, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7865), null, "Manager", null },
+                    { 3, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7867), null, "Worker", null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "TaskStatuses",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "To do" },
+                    { 2, "In progress" },
+                    { 3, "Finished" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "CreatedAt", "DeletedAt", "Email", "FirstName", "PasswordHash", "Surname", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7888), null, "admin@wms.pl", "Jan", "AQAAAAEAACcQAAAAEFA...", "Kowalski", null },
+                    { 2, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7898), null, "pracownik@wms.pl", "Adam", "AQAAAAEAACcQAAAAEFA...", "Nowak", null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ActivityLogs",
+                columns: new[] { "Id", "Action", "ComponentId", "CreatedAt", "ModuleId", "NewData", "OldData", "UserId" },
+                values: new object[] { 1, "create", 101, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(8180), 1, "{'Name': 'Laptop Dell Vostro', 'Qty': 15}", "", 1 });
+
+            migrationBuilder.InsertData(
+                table: "Products",
+                columns: new[] { "Id", "BrandId", "CategoryId", "CostAmt", "CreatedAt", "DeletedAt", "ForecastDepletionDate", "ForecastUpdatedAt", "Name", "QrCode", "Quantity", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, 4, 1, 3500.00m, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7976), null, null, null, "Laptop Dell Vostro", "QR-LAP-001", 15, null },
+                    { 2, 2, 2, 450.50m, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(7987), null, null, null, "Wkrętarka Makita 18V", "QR-TOO-052", 40, null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "UserNotifications",
+                columns: new[] { "NotificationId", "UserId" },
+                values: new object[,]
+                {
+                    { 1, 1 },
+                    { 1, 2 },
+                    { 2, 2 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "WorkTasks",
+                columns: new[] { "Id", "CreatedAt", "DeletedAt", "Description", "RoleId", "StatusId", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(8041), null, "Rozładunek dostawy elektroniki z palety P-10", 3, 1, null },
+                    { 2, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(8101), null, "Weryfikacja stanów chemii w sektorze C", 2, 2, null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ProductChanges",
+                columns: new[] { "Id", "CreatedAt", "CreatedById", "ProductId", "QuantityChanged", "Reason" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(8029), 1, 1, 15, "Dostawa zewnętrzna" },
+                    { 2, new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(8031), 1, 2, 40, "Dostawa zewnętrzna" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "TaskComments",
+                columns: new[] { "Id", "Content", "CreatedAt", "CreatedById", "DeletedAt", "TaskId", "UpdatedAt" },
+                values: new object[] { 1, "Kurier się spóźnia, rozładunek przesunięty na 14:00", new DateTime(2026, 6, 20, 17, 42, 17, 11, DateTimeKind.Utc).AddTicks(8151), 2, null, 1, null });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ActivityLogs_ModuleId",
                 table: "ActivityLogs",
@@ -437,21 +612,27 @@ namespace WarehouseManagementApp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Brands_Name",
+                table: "Brands",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Modules_Name",
                 table: "Modules",
                 column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderProducts_OrderId_ProductId",
+                table: "OrderProducts",
+                columns: new[] { "OrderId", "ProductId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderProducts_ProductId",
                 table: "OrderProducts",
                 column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderStatuses_Name",
-                table: "OrderStatuses",
-                column: "Name",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_CreatorId",
@@ -474,6 +655,12 @@ namespace WarehouseManagementApp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderStatuses_Name",
+                table: "OrderStatuses",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Permissions_Name",
                 table: "Permissions",
                 column: "Name",
@@ -483,7 +670,8 @@ namespace WarehouseManagementApp.Migrations
                 name: "IX_ProductCategories_Name",
                 table: "ProductCategories",
                 column: "Name",
-                unique: true);
+                unique: true,
+                filter: "[DeletedAt] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductChanges_CreatedById",
@@ -496,6 +684,11 @@ namespace WarehouseManagementApp.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Products_BrandId",
+                table: "Products",
+                column: "BrandId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",
                 table: "Products",
                 column: "CategoryId");
@@ -504,13 +697,15 @@ namespace WarehouseManagementApp.Migrations
                 name: "IX_Products_Name_CategoryId",
                 table: "Products",
                 columns: new[] { "Name", "CategoryId" },
-                unique: true);
+                unique: true,
+                filter: "[DeletedAt] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_QrCode",
                 table: "Products",
                 column: "QrCode",
-                unique: true);
+                unique: true,
+                filter: "[DeletedAt] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RolePermissions_PermissionId",
@@ -521,7 +716,8 @@ namespace WarehouseManagementApp.Migrations
                 name: "IX_Roles_Name",
                 table: "Roles",
                 column: "Name",
-                unique: true);
+                unique: true,
+                filter: "[DeletedAt] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskComments_CreatedById",
@@ -547,7 +743,8 @@ namespace WarehouseManagementApp.Migrations
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
-                unique: true);
+                unique: true,
+                filter: "[DeletedAt] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkTasks_RoleId",
@@ -607,6 +804,9 @@ namespace WarehouseManagementApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Brands");
 
             migrationBuilder.DropTable(
                 name: "ProductCategories");

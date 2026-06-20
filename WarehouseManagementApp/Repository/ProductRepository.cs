@@ -19,6 +19,7 @@ namespace WarehouseManagementApp.Repository
         {
             return _dbSet
                          .Include(p => p.Category)
+                         .Include(p => p.Brand)
                          .ToList();
         }
         public Product? GetByName(string name)
@@ -45,9 +46,9 @@ namespace WarehouseManagementApp.Repository
             return _dbSet.Any(p => p.QrCode == qrCode && p.Id != productId && p.DeletedAt == null);
         }
 
-        public bool NameCategoryExists(string name, int categoryId, int productId = 0)
+        public bool NameBrandExists(string name, int brandId, int productId = 0)
         {
-            return _dbSet.Any(p => p.Name == name && p.CategoryId == categoryId && p.Id != productId && p.DeletedAt == null);
+            return _dbSet.Any(p => p.Name == name && p.BrandId == brandId && p.Id != productId && p.DeletedAt == null);
         }
         public bool SoftDelete(Product product)
         {

@@ -77,8 +77,8 @@ namespace WarehouseManagementApp.Controllers
         {
             if (productDto == null)
                 return BadRequest("Product cannot be null.");            
-            if (_productRepository.NameCategoryExists(productDto.Name, productDto.CategoryId))
-                return BadRequest($"Product with name {productDto.Name} already exists in category {productDto.CategoryId}.");
+            if (_productRepository.NameBrandExists(productDto.Name, productDto.CategoryId))
+                return BadRequest($"Product with name {productDto.Name} already exists from brand {productDto.BrandId}.");
             var createdProduct = ProductMapper.CreateDtoToProduct(productDto);
             if (!_productRepository.Create(createdProduct))
                 return StatusCode(500, "Failed to create product.");
@@ -107,8 +107,8 @@ namespace WarehouseManagementApp.Controllers
             var existingProduct = _productRepository.GetById(productId);
             if (existingProduct == null)
                 return NotFound($"Product with id {productId} does not exist.");
-            if (_productRepository.NameCategoryExists(productDto.Name, productDto.CategoryId, productId))
-                return BadRequest($"Another product with name {productDto.Name} already exists in category {productDto.CategoryId}.");
+            if (_productRepository.NameBrandExists(productDto.Name, productDto.BrandId, productId))
+                return BadRequest($"Another product with name {productDto.Name} already exists in category {productDto.BrandId}.");
             var oldProductData = JsonSerializer.Serialize(existingProduct.ToReadDto());
             ProductMapper.UpdateFromDto(existingProduct, productDto);
             
