@@ -60,12 +60,6 @@ builder.Services.AddAuthorization(options =>
                 context.User.HasClaim("Permission", "Access:All"));
         });
     }
-    //options.AddPolicy("Read", policy =>
-    //    policy.RequireClaim("Permission", "Read_All"));
-    //options.AddPolicy("Write", policy =>
-    //    policy.RequireClaim("Permission", "Write_All"));
-    //options.AddPolicy("Delete", policy =>
-    //    policy.RequireClaim("Permission", "Delete_Records"));
 });
 
 builder.Services.AddControllers();
