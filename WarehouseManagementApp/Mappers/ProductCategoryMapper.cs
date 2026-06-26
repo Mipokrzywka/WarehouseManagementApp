@@ -10,7 +10,10 @@ namespace WarehouseManagementApp.Mappers
             return new ProductCategoryReadDto()
             {
                 Id = productCategory.Id,
-                Name = productCategory.Name
+                Name = productCategory.Name,
+                ProductCount = productCategory.
+                                Products.
+                                Count()
             };
         }
 

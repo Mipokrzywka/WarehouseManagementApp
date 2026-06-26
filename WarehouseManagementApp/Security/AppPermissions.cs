@@ -25,7 +25,7 @@
         
 
         public static readonly string[] All = [
-            ProductsRead,ProductsManage,ProductCategoriesManage,
+            ProductsRead,ProductsManage, ProductCategoriesRead, ProductCategoriesManage,
             OrdersRead, OrdersCreate, OrdersProcess, UsersRead,
             UsersManage, RolesRead, RolesManage
             ];

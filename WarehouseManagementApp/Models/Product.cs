@@ -14,6 +14,7 @@ namespace WarehouseManagementApp.Models
         [ForeignKey("BrandId")]
         public Brand? Brand { get; set; }
         [Required]
+        [MaxLength]
         public string QrCode { get; set; } = string.Empty;
         [Required]
         public string Name {  get; set; } = string.Empty;

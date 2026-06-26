@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using WarehouseManagementApp.Data;
 using WarehouseManagementApp.Interfaces;
 using WarehouseManagementApp.Models;
@@ -33,7 +34,9 @@ namespace WarehouseManagementApp.Repository
 
         public bool HasUsers(int id)
         {
-            return _context.UserRoles.Any(ur => ur.RoleId == id);
+            return _dbSet
+                    .Where(r => r.Id == id)
+                    .Any(r => r.UserRoles.Any(ur => ur.User != null));
         }
 
         public bool RoleExists(string name)

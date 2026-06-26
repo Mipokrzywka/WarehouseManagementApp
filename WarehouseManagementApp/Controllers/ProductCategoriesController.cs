@@ -28,7 +28,7 @@ public class ProductCategoriesController : BaseApiController
     [ProducesResponseType (200, Type = typeof(IEnumerable<ProductCategoryReadDto>))]
     public IActionResult GetProductCategories()
     {
-        var productCategories = _productCategoryRepository.GetAll();
+        var productCategories = _productCategoryRepository.GetCategoriesWithProducts();
 
         var productCategoriesDto = productCategories.Select(pc => pc.ToReadDto());
         return Ok(productCategoriesDto);

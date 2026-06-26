@@ -7,7 +7,6 @@ namespace WarehouseManagementApp.DTOs
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string QrCode { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal CostAmt { get; set; }
         public int CategoryId { get; set; }

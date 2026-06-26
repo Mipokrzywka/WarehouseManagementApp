@@ -10,6 +10,12 @@ namespace WarehouseManagementApp.Repository
         public ProductCategoryRepository(ApplicationDbContext context) : base(context)
         {
         }
+        public ICollection<ProductCategory>? GetCategoriesWithProducts()
+        {
+            return _dbSet
+                    .Include(pc => pc.Products)
+                    .ToList();
+        }
         public ProductCategory? GetByName(string name)
         {
             return _dbSet.FirstOrDefault(pc => pc.Name.ToLower() == name.ToLower());
@@ -30,5 +36,7 @@ namespace WarehouseManagementApp.Repository
             _dbSet.Update(category);
             return Save();
         }
+
+        
     }
 }

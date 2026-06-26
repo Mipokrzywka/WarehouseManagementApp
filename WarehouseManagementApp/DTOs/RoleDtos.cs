@@ -7,6 +7,7 @@ namespace WarehouseManagementApp.DTOs
     {
         public int RoleId { get; set; }
         public string Name { get; set; } = string.Empty;
+        public int UsersCount { get; set; }
         public IEnumerable<PermissionReadDto> Permissions { get; set; } = new List<PermissionReadDto>();
         public IEnumerable<string> Emails { get; set; } = new List<string>();
     }

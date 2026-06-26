@@ -22,7 +22,10 @@ namespace WarehouseManagementApp.Mappers
                 Emails = role.UserRoles
                              .Where(ur => ur.User != null)
                              .Select(ur => ur.User.Email)
-                             .ToList()
+                             .ToList(),
+                UsersCount = role.UserRoles
+                                .Where(ur => ur.User != null)
+                                .Count()
             };
         }
     }

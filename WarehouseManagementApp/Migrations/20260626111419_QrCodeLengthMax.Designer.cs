@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WarehouseManagementApp.Data;
 
@@ -11,9 +12,11 @@ using WarehouseManagementApp.Data;
 namespace WarehouseManagementApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260626111419_QrCodeLengthMax")]
+    partial class QrCodeLengthMax
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,7 +72,7 @@ namespace WarehouseManagementApp.Migrations
                             Id = 1,
                             Action = "create",
                             ComponentId = 101,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3653),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6315),
                             ModuleId = 1,
                             NewData = "{'Name': 'Laptop Dell Vostro', 'Qty': 15}",
                             OldData = "",
@@ -227,13 +230,13 @@ namespace WarehouseManagementApp.Migrations
                         {
                             Id = 1,
                             Content = "Welcome in the WMS system!",
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3470)
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5982)
                         },
                         new
                         {
                             Id = 2,
                             Content = "Test notification",
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3471)
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5984)
                         });
                 });
 
@@ -506,7 +509,7 @@ namespace WarehouseManagementApp.Migrations
 
                     b.Property<string>("QrCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -519,6 +522,10 @@ namespace WarehouseManagementApp.Migrations
                     b.HasIndex("BrandId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("QrCode")
+                        .IsUnique()
+                        .HasFilter("[DeletedAt] IS NULL");
 
                     b.HasIndex("Name", "CategoryId")
                         .IsUnique()
@@ -533,7 +540,7 @@ namespace WarehouseManagementApp.Migrations
                             BrandId = 4,
                             CategoryId = 1,
                             CostAmt = 3500.00m,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3522),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6062),
                             Name = "Laptop Dell Vostro",
                             QrCode = "QR-LAP-001",
                             Quantity = 15
@@ -544,7 +551,7 @@ namespace WarehouseManagementApp.Migrations
                             BrandId = 2,
                             CategoryId = 2,
                             CostAmt = 450.50m,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3530),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6117),
                             Name = "Wkrętarka Makita 18V",
                             QrCode = "QR-TOO-052",
                             Quantity = 40
@@ -585,19 +592,19 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3246),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5511),
                             Name = "Electronics"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3250),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5516),
                             Name = "Tools"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3251),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5518),
                             Name = "AGD"
                         });
                 });
@@ -638,7 +645,7 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3567),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6187),
                             CreatedById = 1,
                             ProductId = 1,
                             QuantityChanged = 15,
@@ -647,7 +654,7 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3571),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6193),
                             CreatedById = 1,
                             ProductId = 2,
                             QuantityChanged = 40,
@@ -689,19 +696,19 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3407),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5886),
                             Name = "Administrator"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3413),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5892),
                             Name = "Manager"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3415),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5894),
                             Name = "Worker"
                         });
                 });
@@ -761,7 +768,7 @@ namespace WarehouseManagementApp.Migrations
                         {
                             Id = 1,
                             Content = "Kurier się spóźnia, rozładunek przesunięty na 14:00",
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3623),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6270),
                             CreatedById = 2,
                             TaskId = 1
                         });
@@ -850,7 +857,7 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3438),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5931),
                             Email = "admin@wms.pl",
                             FirstName = "Jan",
                             PasswordHash = "AQAAAAEAACcQAAAAEFA...",
@@ -859,7 +866,7 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3446),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(5942),
                             Email = "pracownik@wms.pl",
                             FirstName = "Adam",
                             PasswordHash = "AQAAAAEAACcQAAAAEFA...",
@@ -953,7 +960,7 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3579),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6204),
                             Description = "Rozładunek dostawy elektroniki z palety P-10",
                             RoleId = 3,
                             StatusId = 1
@@ -961,7 +968,7 @@ namespace WarehouseManagementApp.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 6, 26, 11, 20, 17, 643, DateTimeKind.Utc).AddTicks(3583),
+                            CreatedAt = new DateTime(2026, 6, 26, 11, 14, 18, 364, DateTimeKind.Utc).AddTicks(6206),
                             Description = "Weryfikacja stanów chemii w sektorze C",
                             RoleId = 2,
                             StatusId = 2

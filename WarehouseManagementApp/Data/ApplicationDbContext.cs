@@ -45,10 +45,6 @@ namespace WarehouseManagementApp.Data
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId});
 
             // Configure unique indexes and relationships
-            modelBuilder.Entity<Product>()
-                .HasIndex(p => p.QrCode)
-                .IsUnique()
-                .HasFilter("[DeletedAt] IS NULL");
             modelBuilder.Entity<OrderProduct>()
                 .HasIndex(op => new { op.OrderId, op.ProductId })
                 .IsUnique();
@@ -142,6 +138,11 @@ namespace WarehouseManagementApp.Data
                 .HasQueryFilter(r => r.DeletedAt == null);
             modelBuilder.Entity<User>()
                 .HasQueryFilter(u => u.DeletedAt == null);
+
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.QrCode)
+                .HasColumnType("nvarchar(max)");
 
 
             DataSeeder.Seed(modelBuilder);

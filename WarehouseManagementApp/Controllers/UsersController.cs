@@ -12,6 +12,7 @@ using WarehouseManagementApp.Mappers;
 using WarehouseManagementApp.Models;
 using WarehouseManagementApp.Repository;
 using WarehouseManagementApp.Security;
+using System.Security;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -71,6 +72,8 @@ public class UsersController : BaseApiController
         var user = _userRepository.GetUserWithRolesAndPermissions(id);
         if (user == null)
             return BadRequest($"User with id {id} does not exist");
+        if (dto.RoleIds == null || !dto.RoleIds.Any())
+            return BadRequest("User must have at least one role");
 
         var existingRoles = _roleRepository.GetAll().Select(r => r.Id).ToList();
         var invalidRoles = dto.RoleIds.Except(existingRoles).ToList();
@@ -187,7 +190,10 @@ public class UsersController : BaseApiController
         if (invalidRoles.Any())
             return BadRequest($"Roles with ids {string.Join(", ", invalidRoles)} do not exist");
 
-        string hashedPassword = _passwordHasher.HashPassword(dto.Password);
+        //string password = Path.GetRandomFileName().Replace(".", "");
+        string password = "Password";
+
+        string hashedPassword = _passwordHasher.HashPassword(password);
 
         var createdUser = new User()
         {

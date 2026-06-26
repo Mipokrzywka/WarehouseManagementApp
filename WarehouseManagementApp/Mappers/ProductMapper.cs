@@ -1,5 +1,7 @@
-﻿using WarehouseManagementApp.DTOs;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using WarehouseManagementApp.DTOs;
 using WarehouseManagementApp.Models;
+using WarehouseManagementApp.Services;
 
 namespace WarehouseManagementApp.Mappers
 {
@@ -11,7 +13,6 @@ namespace WarehouseManagementApp.Mappers
             {
                 Id = product.Id,
                 Name = product.Name,
-                QrCode = product.QrCode,
                 Quantity = product.Quantity,
                 CostAmt = product.CostAmt,
                 CategoryId = product.CategoryId,
@@ -25,7 +26,9 @@ namespace WarehouseManagementApp.Mappers
 
         public static Product CreateDtoToProduct(ProductCreateDto dto)
         {
-            string qr = $"WMS-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+            QrCodeService q = new QrCodeService();
+            string token = Guid.NewGuid().ToString();
+            string qr = q.GenerateQrCode(token);
             DateTime createdAt = DateTime.UtcNow;
             return new Product
             {
@@ -43,13 +46,12 @@ namespace WarehouseManagementApp.Mappers
 
         public static void UpdateFromDto(Product product, ProductUpdateDto dto)
         {
-
             product.Name = dto.Name;
             product.Quantity = dto.Quantity;
             product.CostAmt = dto.CostAmt;
             product.CategoryId = dto.CategoryId;
             product.BrandId = dto.BrandId;
-            product.UpdatedAt = DateTime.UtcNow;     
+            product.UpdatedAt = DateTime.UtcNow;
         }
 
     }

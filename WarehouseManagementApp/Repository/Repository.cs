@@ -46,7 +46,7 @@ namespace WarehouseManagementApp.Repository
             }
             catch (DbUpdateException ex)
             {
-                Console.WriteLine($"Data save failure: {ex.InnerException?.Message}");
+                System.Diagnostics.Debug.WriteLine($"Data save failure: {ex.InnerException?.Message}");
                 return false;
             }
         }
